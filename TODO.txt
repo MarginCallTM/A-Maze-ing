@@ -4,11 +4,11 @@
 
 PHASE 0 — Setup du projet
 --------------------------
-[ ] Créer le repo Git et initialiser .gitignore
+[x] Créer le repo Git et initialiser .gitignore
     (Python artifacts : __pycache__, .mypy_cache, .venv, *.pyc)
-[ ] Créer un environnement virtuel (python -m venv .venv)
-[ ] Installer les dépendances de dev : flake8, mypy, pytest
-[ ] Créer le Makefile avec les règles :
+[x] Créer un environnement virtuel (python -m venv .venv)
+[x] Installer les dépendances de dev : flake8, mypy, pytest
+[x] Créer le Makefile avec les règles :
     install | run | debug | clean | lint | lint-strict
 
 
