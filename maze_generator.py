@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 
 class MazeGenerator():
@@ -53,3 +54,52 @@ class MazeGenerator():
             else:
                 stack.pop()
         return self.grid
+
+    def solve(self, entry: tuple[int, int], exit_pos: tuple[int,
+              int]) -> tuple[list[tuple[int, int]], str]:
+        visited = [[False for i in range(self.width)]
+                   for i in range(self.height)]
+        came_from = {}
+        queue = deque()
+
+        start_x, start_y = entry
+        visited[start_y][start_x] = True
+        queue.append((start_x, start_y))
+
+        directions = {
+            (0, -1): ("N", 1),
+            (1, 0): ("E", 2),
+            (0, 1): ("S", 4),
+            (-1, 0): ("W", 8),
+        }
+
+        while queue:
+            x, y = queue.popleft()
+            if (x, y) == exit_pos:
+                break
+            for (dx, dy), (direction, wall_bit) in directions.items():
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if not visited[ny][nx] and self.grid[y][x] & wall_bit == 0:
+                        visited[ny][nx] = True
+                        came_from[(nx, ny)] = (x, y)
+                        queue.append((nx, ny))
+
+        path_coords = []
+        current = exit_pos
+        while current != entry:
+            path_coords.append(current)
+            current = came_from[current]
+        path_coords.append(entry)
+        path_coords.reverse()
+
+        path_directions = ""
+        for i in range(len(path_coords) - 1):
+            x1, y1 = path_coords[i]
+            x2, y2 = path_coords[i + 1]
+            dx, dy = x2 - x1, y2 - y1
+            for (ddx, ddy), (direction, _) in directions.items():
+                if dx == ddx and dy == ddy:
+                    path_directions += direction
+                    break
+        return path_coords, path_directions

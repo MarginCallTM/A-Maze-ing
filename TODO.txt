@@ -50,9 +50,9 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 
 1.4 — Algorithme de résolution (plus court chemin)
 ----------------------------------------------------
-[ ] Implémenter BFS (ou Dijkstra) pour trouver le
+[x] Implémenter BFS (ou Dijkstra) pour trouver le
     plus court chemin entrée -> sortie
-[ ] Encoder le chemin en lettres N, E, S, W
+[x] Encoder le chemin en lettres N, E, S, W
 
 1.5 — Fichier de sortie
 -------------------------
