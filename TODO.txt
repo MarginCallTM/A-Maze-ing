@@ -19,25 +19,25 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 1.1 — Parsing du fichier de config
 ------------------------------------
 [ ] Parser config.txt format KEY=VALUE, ignorer les lignes #
-[ ] Valider les clés obligatoires :
+[x] Valider les clés obligatoires :
     WIDTH, HEIGHT, ENTRY, EXIT, OUTPUT_FILE, PERFECT
-[ ] Gérer toutes les erreurs gracieusement
-    (fichier absent, syntaxe invalide, paramètres impossibles)
-[ ] Supporter les clés optionnelles : SEED, ALGORITHM, DISPLAY_MODE
-[ ] Fournir un config.txt par défaut dans le repo
+[x] Gérer toutes les erreurs gracieusement
+    (validation entry/exit hors limites, taille min pour pattern 42)
+[x] Supporter les clés optionnelles : SEED, ALGORITHM, DISPLAY_MODE
+[x] Fournir un config.txt par défaut dans le repo
 
 1.2 — Algorithme de génération
 --------------------------------
-[ ] Choisir et implémenter un algorithme de génération
-    (ex: Recursive Backtracker, Prim, Kruskal)
-[ ] Génération aléatoire avec SEED pour reproductibilité
-[ ] Garantir la connectivité totale (aucune cellule isolée)
-[ ] Appliquer la contrainte de largeur de couloir :
+[x] Choisir et implémenter un algorithme de génération
+    (Recursive Backtracker / DFS)
+[x] Génération aléatoire avec SEED pour reproductibilité
+[x] Garantir la connectivité totale (aucune cellule isolée)
+[x] Appliquer la contrainte de largeur de couloir :
     jamais de zone ouverte 3x3 ou plus (max 2x3 ou 3x2)
-[ ] Gérer les murs cohérents entre cellules voisines
+[x] Gérer les murs cohérents entre cellules voisines
     (si cellule A a mur Est => cellule B à l'Est a mur Ouest)
-[ ] Garantir les murs de bordure externes
-[ ] Implémenter le mode PERFECT=True :
+[x] Garantir les murs de bordure externes
+[x] Implémenter le mode PERFECT=True :
     exactement 1 chemin entre entrée et sortie
 
 1.3 — Pattern "42"
