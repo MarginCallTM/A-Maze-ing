@@ -17,7 +17,7 @@ def make_generator(width=10, height=10, seed=42):
 
 def test_grid_dimensions():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     assert len(gen.grid) == 10
     for row in gen.grid:
         assert len(row) == 10
@@ -25,7 +25,7 @@ def test_grid_dimensions():
 
 def test_cell_values_in_range():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for y in range(gen.height):
         for x in range(gen.width):
             cell = gen.grid[y][x]
@@ -34,35 +34,35 @@ def test_cell_values_in_range():
 
 def test_border_walls_north():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for x in range(gen.width):
         assert gen.grid[0][x] & 1 != 0
 
 
 def test_border_walls_south():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for x in range(gen.width):
         assert gen.grid[gen.height - 1][x] & 4 != 0
 
 
 def test_border_walls_west():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for y in range(gen.height):
         assert gen.grid[y][0] & 8 != 0
 
 
 def test_border_walls_east():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for y in range(gen.height):
         assert gen.grid[y][gen.width - 1] & 2 != 0
 
 
 def test_wall_coherence_horizontal():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     for y in range(gen.height):
         for x in range(gen.width - 1):
             cell_left = gen.grid[y][x]
@@ -74,7 +74,7 @@ def test_wall_coherence_horizontal():
 
 def test_full_connectivity():
     gen = make_generator(10, 10, 42)
-    gen.generate()
+    gen.generate(has_forty_two=False)
     visited = [[False] * gen.width for _ in range(gen.height)]
     stack = [(0, 0)]
     visited[0][0] = True
@@ -167,8 +167,7 @@ class TestPattern42:
 
     def setup_method(self) -> None:
         self.gen = make_generator(20, 15, 42)
-        self.gen.generate()
-        self.gen.apply_pattern_42()
+        self.gen.generate(has_forty_two=True)
         self.start_x = (self.gen.width - 7) // 2
         self.start_y = (self.gen.height - 5) // 2
 

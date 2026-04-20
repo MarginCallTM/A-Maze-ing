@@ -45,8 +45,8 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 [x] Définir le motif "42" en cellules totalement fermées
     (toutes leurs parois = 1, mur dans les 4 directions)
 [x] Positionner et intégrer le motif dans le labyrinthe généré
-    (WIP: le pattern coupe le chemin, il faut poser le pattern
-    AVANT la génération DFS pour que l'algo contourne)
+    (pattern posé AVANT le DFS, cellules marquées visitées,
+    le DFS contourne automatiquement)
 [ ] Vérifier que la taille du labyrinthe est suffisante,
     sinon afficher un message d'erreur sur la console
 

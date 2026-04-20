@@ -81,9 +81,18 @@ class MazeGenerator():
             self.grid[y1][x1] &= ~8
             self.grid[y2][x2] &= ~2
 
-    def generate(self) -> list[list[int]]:
+    def generate(self, has_forty_two: bool = True) -> list[list[int]]:
         visited = [[False for i in range(self.width)]
                    for i in range(self.height)]
+
+        if has_forty_two:
+            start_px = (self.width - 7) // 2
+            start_py = (self.height - 5) // 2
+            for py in range(len(PATTERN_42)):
+                for px in range(len(PATTERN_42[0])):
+                    if PATTERN_42[py][px] == 1:
+                        visited[start_py + py][start_px + px] = True
+
         stack = []
         start_x, start_y = 0, 0
         visited[start_y][start_x] = True
@@ -99,6 +108,10 @@ class MazeGenerator():
                 stack.append((nx, ny))
             else:
                 stack.pop()
+
+        if has_forty_two:
+            self._fix_pattern_neighbors(start_px, start_py)
+
         return self.grid
 
     def solve(self, entry: tuple[int, int], exit_pos: tuple[int,
