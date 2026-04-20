@@ -17,8 +17,8 @@ class Maze(BaseModel):
 
 class MazeOptions(BaseModel):
 
-    width: int = Field(ge=2)
-    height: int = Field(ge=2)
+    width: int = Field(ge=3)
+    height: int = Field(ge=3)
     entry: Coords
     exit: Coords
     output_file: str

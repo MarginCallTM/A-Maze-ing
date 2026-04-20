@@ -1,14 +1,60 @@
 import random
 from collections import deque
+from Maze import MazeOptions, Maze
+
+
+PATTERN_42 = [
+    [1, 0, 1, 0, 1, 1, 1],
+    [1, 0, 1, 0, 0, 0, 1],
+    [1, 1, 1, 0, 0, 1, 0],
+    [0, 0, 1, 0, 1, 0, 0],
+    [0, 0, 1, 0, 1, 1, 1],
+]
 
 
 class MazeGenerator():
-    def __init__(self, width: int, height: int, seed: int) -> None:
-        self.width = width
-        self.height = height
-        self.seed = seed
-        random.seed(seed)
-        self.grid = [[15 for i in range(width)] for i in range(height)]
+    def __init__(self, options: MazeOptions) -> None:
+        self.width = options.width
+        self.height = options.height
+        self.entry = options.entry
+        self.exit = options.exit
+        self.perfect = options.perfect
+        random.seed(options.seed)
+        self.grid = [[15 for i in range(self.width)]
+                     for i in range(self.height)]
+
+    def apply_pattern_42(self) -> None:
+        start_x = (self.width - 7) // 2
+        start_y = (self.height - 5) // 2
+        for py in range(len(PATTERN_42)):
+            for px in range(len(PATTERN_42[0])):
+                if PATTERN_42[py][px] == 1:
+                    self.grid[start_y + py][start_x + px] = 15
+        self._fix_pattern_neighbors(start_x, start_y)
+
+    def _fix_pattern_neighbors(self, start_x: int, start_y: int) -> None:
+        pattern_h = len(PATTERN_42)
+        pattern_w = len(PATTERN_42[0])
+        for py in range(pattern_h):
+            for px in range(pattern_w):
+                if PATTERN_42[py][px] != 1:
+                    continue
+                gx = start_x + px
+                gy = start_y + py
+                neighbors = [
+                    (gx, gy - 1, 0, -1, 4),
+                    (gx + 1, gy, 1, 0, 8),
+                    (gx, gy + 1, 0, 1, 1),
+                    (gx - 1, gy, -1, 0, 2),
+                ]
+                for nx, ny, dx, dy, wall_bit in neighbors:
+                    if 0 <= nx < self.width and 0 <= ny < self.height:
+                        ppx = px + dx
+                        ppy = py + dy
+                        in_pattern = (
+                            0 <= ppx < pattern_w and 0 <= ppy < pattern_h and PATTERN_42[ppy][ppx] == 1)
+                        if not in_pattern:
+                            self.grid[ny][nx] |= wall_bit
 
     def _get_unvisited_neighbors(
             self, x: int, y: int, visited: list[list[bool]]) -> list[tuple[int, int]]:

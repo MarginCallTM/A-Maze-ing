@@ -42,9 +42,11 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 
 1.3 — Pattern "42"
 --------------------
-[ ] Définir le motif "42" en cellules totalement fermées
+[x] Définir le motif "42" en cellules totalement fermées
     (toutes leurs parois = 1, mur dans les 4 directions)
-[ ] Positionner et intégrer le motif dans le labyrinthe généré
+[x] Positionner et intégrer le motif dans le labyrinthe généré
+    (WIP: le pattern coupe le chemin, il faut poser le pattern
+    AVANT la génération DFS pour que l'algo contourne)
 [ ] Vérifier que la taille du labyrinthe est suffisante,
     sinon afficher un message d'erreur sur la console
 
