@@ -1,7 +1,7 @@
 import sys
 
 
-def main():
+def main() -> None:
     if not len(sys.argv) == 2:
         print("Usage: python3 a_maze_ing.py <config_file>")
         sys.exit(1)

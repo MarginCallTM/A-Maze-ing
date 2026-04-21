@@ -1,8 +1,11 @@
+import pytest
 from maze_generator import MazeGenerator
 from Maze import MazeOptions
 
 
-def make_generator(width=10, height=10, seed=42):
+def make_generator(
+    width: int = 10, height: int = 10, seed: int = 42
+) -> MazeGenerator:
     options = MazeOptions(
         width=width,
         height=height,
@@ -15,7 +18,7 @@ def make_generator(width=10, height=10, seed=42):
     return MazeGenerator(options)
 
 
-def test_grid_dimensions():
+def test_grid_dimensions() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     assert len(gen.grid) == 10
@@ -23,7 +26,7 @@ def test_grid_dimensions():
         assert len(row) == 10
 
 
-def test_cell_values_in_range():
+def test_cell_values_in_range() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for y in range(gen.height):
@@ -32,35 +35,35 @@ def test_cell_values_in_range():
             assert 0 <= cell <= 15
 
 
-def test_border_walls_north():
+def test_border_walls_north() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for x in range(gen.width):
         assert gen.grid[0][x] & 1 != 0
 
 
-def test_border_walls_south():
+def test_border_walls_south() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for x in range(gen.width):
         assert gen.grid[gen.height - 1][x] & 4 != 0
 
 
-def test_border_walls_west():
+def test_border_walls_west() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for y in range(gen.height):
         assert gen.grid[y][0] & 8 != 0
 
 
-def test_border_walls_east():
+def test_border_walls_east() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for y in range(gen.height):
         assert gen.grid[y][gen.width - 1] & 2 != 0
 
 
-def test_wall_coherence_horizontal():
+def test_wall_coherence_horizontal() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     for y in range(gen.height):
@@ -72,7 +75,7 @@ def test_wall_coherence_horizontal():
             assert left_has_east == right_has_west
 
 
-def test_full_connectivity():
+def test_full_connectivity() -> None:
     gen = make_generator(10, 10, 42)
     gen.generate()
     visited = [[False] * gen.width for _ in range(gen.height)]
@@ -170,7 +173,9 @@ class TestPattern42:
         assert gen.has_forty_two is True
         assert len(gen.pattern_cells) > 0
 
-    def test_has_forty_two_false_when_too_small(self, capsys) -> None:
+    def test_has_forty_two_false_when_too_small(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         gen = make_generator(8, 6, 42)
         assert gen.has_forty_two is False
         assert gen.pattern_cells == set()

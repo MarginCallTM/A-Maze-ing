@@ -1,7 +1,7 @@
 import random
-from collections import deque
-from Maze import MazeOptions, Maze
 import sys
+from collections import deque
+from Maze import MazeOptions
 
 PATTERN_42 = [
     [1, 0, 1, 0, 1, 1, 1],
@@ -46,7 +46,8 @@ class MazeGenerator():
             )
 
     def _get_unvisited_neighbors(
-            self, x: int, y: int, visited: list[list[bool]]) -> list[tuple[int, int]]:
+        self, x: int, y: int, visited: list[list[bool]]
+    ) -> list[tuple[int, int]]:
         neighbors = []
         directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         for dx, dy in directions:
@@ -99,7 +100,7 @@ class MazeGenerator():
         visited = [[False for i in range(self.width)]
                    for i in range(self.height)]
         came_from = {}
-        queue = deque()
+        queue: deque[tuple[int, int]] = deque()
 
         start_x, start_y = entry
         visited[start_y][start_x] = True
