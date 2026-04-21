@@ -13,6 +13,7 @@ class Maze(BaseModel):
     entry: Coords
     exit: Coords
     path: list[Coords]
+    mask: list[Coords]
 
 
 class MazeOptions(BaseModel):

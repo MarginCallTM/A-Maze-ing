@@ -1,6 +1,7 @@
 from maze import Maze, Cell
 from operator import add
 from functools import reduce
+# from os import system
 
 
 class MazeRenderer:
@@ -11,18 +12,49 @@ class MazeRenderer:
             (((' ', '•'), ('•', '╗')), (('•', '═'), ('╔', '╦'))),
             ((('•', '╝'), ('║', '╣')), (('╚', '╩'), ('╠', '╬')))
         )
+        self.entry_char = '▓'
+        self.exit_char = '░'
+        self.path_char = '▒'
+        self.mask_char = '█'
         self.y_len = len(maze.grid)
         self.x_len = len(maze.grid[0])
 
     def render_maze(self) -> None:
 
         display = self.__gen_grid()
-        display = self.__apply_walls(display)
-        display = self.__apply_crossing(display)
+        self.__apply_walls(display)
+        self.__apply_crossing(display)
+        self.__add_mask(display)
+        self.__add_path(display)
+        self.__add_entry(display)
+        self.__add_exit(display)
+        # system('clear')
         for row in display:
-            print(reduce(add, row))
+            print(f"\033[34m{reduce(add, row)}\033[0m")
 
-    def __gen_grid(self,) -> list[list[str]]:
+    def __add_entry(self, grid: list[list[str]]) -> None:
+
+        entry = self.maze.entry
+
+        grid[entry[1] * 2 + 1][entry[0] * 2 + 1] = self.entry_char * 3
+
+    def __add_exit(self, grid: list[list[str]]) -> None:
+
+        exit = self.maze.exit
+
+        grid[exit[1] * 2 + 1][exit[0] * 2 + 1] = self.exit_char * 3
+
+    def __add_path(self, grid: list[list[str]]) -> None:
+
+        for pos in self.maze.path:
+            grid[pos[1] * 2 + 1][pos[0] * 2 + 1] = self.path_char * 3
+
+    def __add_mask(self, grid: list[list[str]]) -> None:
+
+        for pos in self.maze.mask:
+            grid[pos[1] * 2 + 1][pos[0] * 2 + 1] = self.mask_char * 3
+
+    def __gen_grid(self) -> list[list[str]]:
 
         y_len = self.y_len * 2 + 1
         x_len = self.x_len * 2 + 1
@@ -64,7 +96,7 @@ class MazeRenderer:
 
         return display
 
-    def __apply_walls(self, grid: list[list[str]]) -> list[list[str]]:
+    def __apply_walls(self, grid: list[list[str]]) -> None:
 
         m_grid = self.maze.grid
 
@@ -80,22 +112,20 @@ class MazeRenderer:
                         not self.has_y_wall(m_grid[y][x], m_grid[y + 1][x])):
                     grid[(y + 1) * 2][x * 2 + 1] = "   "
 
-        return grid
+    def __apply_crossing(self, grid: list[list[str]]) -> None:
 
-    def __apply_crossing(self, grid: list[list[str]]) -> list[list[str]]:
+        y_len = self.y_len * 2 + 1
+        x_len = self.x_len * 2 + 1
 
-        for y in range(self.y_len * 2 + 1)[2:self.y_len * 2 - 1:2]:
+        for y in range(y_len)[0:y_len:2]:
+            for x in range(x_len)[0:x_len:2]:
 
-            for x in range(self.x_len * 2 + 1)[2:self.x_len * 2 - 1:2]:
+                n = 1 if y != 0 and ' ' not in grid[y - 1][x] else 0
+                s = 1 if y != y_len - 1 and ' ' not in grid[y + 1][x] else 0
+                e = 1 if x != x_len - 1 and ' ' not in grid[y][x + 1] else 0
+                w = 1 if x != 0 and ' ' not in grid[y][x - 1] else 0
 
-                north = 1 if ' ' not in grid[y - 1][x] else 0
-                south = 1 if ' ' not in grid[y + 1][x] else 0
-                east = 1 if ' ' not in grid[y][x + 1] else 0
-                west = 1 if ' ' not in grid[y][x - 1] else 0
-
-                grid[y][x] = self.tree[north][east][south][west]
-
-        return grid
+                grid[y][x] = self.tree[n][e][s][w]
 
     @staticmethod
     def has_x_wall(west: Cell, east: Cell) -> bool:
