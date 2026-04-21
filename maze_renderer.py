@@ -1,4 +1,6 @@
-from maze import Maze, Cell, PositiveInt
+from maze import Maze, Cell
+from operator import add
+from functools import reduce
 
 
 class MazeRenderer:
@@ -6,101 +8,99 @@ class MazeRenderer:
     def __init__(self, maze: Maze):
         self.maze: Maze = maze
         self.tree = (
-            (((' ', '•'), ('•', '┐')), (('•', '─'), ('┌', '┬'))),
-            ((('•', '┘'), ('│', '├')), (('└', '┴'), ('┤', '┼')))
+            (((' ', '•'), ('•', '╗')), (('•', '═'), ('╔', '╦'))),
+            ((('•', '╝'), ('║', '╣')), (('╚', '╩'), ('╠', '╬')))
         )
+        self.y_len = len(maze.grid)
+        self.x_len = len(maze.grid[0])
 
     def render_maze(self) -> None:
 
-        m = self.maze.maze
+        display = self.__gen_grid()
+        display = self.__apply_walls(display)
+        display = self.__apply_crossing(display)
+        for row in display:
+            print(reduce(add, row))
 
-        y_len = len(m)
-        x_len = len(m[0])
-        wall_line = ""
-        for x in range(x_len):
-            corner = self.__get_extern_corner(x, 0)
-            x_wall = " "
-            wall_line += x_wall + corner
+    def __gen_grid(self,) -> list[list[str]]:
 
-        print(wall_line)
+        y_len = self.y_len * 2 + 1
+        x_len = self.x_len * 2 + 1
+
+        display: list[list[str]] = [[""] * x_len for _ in range(y_len)]
 
         for y in range(y_len):
-            cell_line = ""
-            wall_line = ""
+
             for x in range(x_len):
-                if 0 <= x < (x_len - 1) and 0 <= y < (y_len - 1):
-                    corner = self.__get_corner(m[y][x], m[y][x + 1],
-                                               m[y + 1][x], m[y + 1][x + 1])
+
+                if y == 0 and x == 0:
+                    char = self.tree[0][1][1][0]
+                elif y == 0 and x == x_len - 1:
+                    char = self.tree[0][0][1][1]
+                elif y == y_len - 1 and x == 0:
+                    char = self.tree[1][1][0][0]
+                elif y == y_len - 1 and x == x_len - 1:
+                    char = self.tree[1][0][0][1]
+                elif y == 0 and not x % 2:
+                    char = self.tree[0][1][1][1]
+                elif not y % 2 and x == 0:
+                    char = self.tree[1][1][1][0]
+                elif y == y_len - 1 and not x % 2:
+                    char = self.tree[1][1][0][1]
+                elif not y % 2 and x == x_len - 1:
+                    char = self.tree[1][0][1][1]
+                elif y % 2 and not x % 2:
+                    char = self.tree[1][0][1][0]
+                elif not y % 2 and x % 2:
+                    char = self.tree[0][1][0][1]
+                elif y % 2 and x % 2:
+                    char = self.tree[0][0][0][0]
+                elif not y % 2 and not x % 2:
+                    char = self.tree[1][1][1][1]
                 else:
-                    corner = self.__get_extern_corner(x, y)
+                    char = '0'
 
-                if 0 < x < (x_len - 1) and y < y_len - 1:
-                    x_wall = self.__get_x_wall(m[y][x], m[y + 1][x])
-                else:
-                    x_wall = " "
+                display[y][x] = char * 3 if x % 2 else char
 
-                if 0 < y < (y_len - 1) and x < x_len - 1:
-                    y_wall = self.__get_y_wall(m[y][x], m[y + 1][x])
-                else:
-                    y_wall = " "
+        return display
 
-                cell_line += "0" + y_wall
-                wall_line += x_wall + corner
-            print(cell_line)
-            print(wall_line)
+    def __apply_walls(self, grid: list[list[str]]) -> list[list[str]]:
 
-    def __get_corner(self, top_left: Cell, top_right: Cell, bottom_left: Cell,
-                     bottom_right: Cell) -> str:
-        top = int(self.is_x_connected(top_left, top_right))
-        right = int(self.is_y_connected(top_right, bottom_right))
-        bottom = int(self.is_x_connected(bottom_left, bottom_right))
-        left = int(self.is_y_connected(top_left, bottom_left))
+        m_grid = self.maze.grid
 
-        return self.tree[top][right][bottom][left]
+        for y in range(self.y_len):
 
-    def __get_extern_corner(self, x: PositiveInt, y: PositiveInt) -> str:
+            for x in range(self.x_len):
 
-        m = self.maze.maze
+                if (x < self.x_len - 1 and
+                        not self.has_x_wall(m_grid[y][x], m_grid[y][x + 1])):
+                    grid[y * 2 + 1][(x + 1) * 2] = " "
 
-        y_len = len(m)
-        x_len = len(m[0])
+                if (y < self.y_len - 1 and
+                        not self.has_y_wall(m_grid[y][x], m_grid[y + 1][x])):
+                    grid[(y + 1) * 2][x * 2 + 1] = "   "
 
-        if x == 0 and y == 0:
-            return self.__get_corner(0, 15, 15, m[y][x])
-        elif x == 0 and y == y_len - 1:
-            return self.__get_corner(15, m[y][x], 15, 0)
-        elif y == 0 and x == x_len - 1:
-            return self.__get_corner(15, 15, m[y][x], 0)
-        elif x == x_len - 1 and y == y_len - 1:
-            return self.__get_corner(m[y][x], 15, 15, 0)
-        elif x == x_len - 1:
-            return self.__get_corner(m[y][x], 8, m[y + 1][x], 8)
-        elif y == y_len - 1:
-            return self.__get_corner(m[y][x], m[y][x + 1], 1, 1)
-        elif x == 0:
-            return self.__get_corner(2, m[y][x], 2, m[y + 1][x])
-        elif y == 0:
-            return self.__get_corner(4, 4, m[y][x], m[y][x + 1])
-        else:
-            return "8"
+        return grid
 
-    def __get_x_wall(self, top: Cell, bottom: Cell) -> str:
-        if self.is_y_connected(top, bottom):
-            return self.tree[0][1][0][1]
-        else:
-            return self.tree[0][0][0][0]
+    def __apply_crossing(self, grid: list[list[str]]) -> list[list[str]]:
 
-    def __get_y_wall(self, left: Cell, right: Cell) -> str:
-        if self.is_x_connected(left, right):
-            return self.tree[1][0][1][0]
-        else:
-            return self.tree[0][0][0][0]
+        for y in range(self.y_len * 2 + 1)[2:self.y_len * 2 - 1:2]:
+
+            for x in range(self.x_len * 2 + 1)[2:self.x_len * 2 - 1:2]:
+
+                north = 1 if ' ' not in grid[y - 1][x] else 0
+                south = 1 if ' ' not in grid[y + 1][x] else 0
+                east = 1 if ' ' not in grid[y][x + 1] else 0
+                west = 1 if ' ' not in grid[y][x - 1] else 0
+
+                grid[y][x] = self.tree[north][east][south][west]
+
+        return grid
 
     @staticmethod
-    def is_x_connected(west: Cell, east: Cell) -> bool:
-        return bool(west & 8) and bool(east & 2)
+    def has_x_wall(west: Cell, east: Cell) -> bool:
+        return bool(west & 2) and bool(east & 8)
 
     @staticmethod
-    def is_y_connected(north: Cell, south: Cell) -> bool:
+    def has_y_wall(north: Cell, south: Cell) -> bool:
         return bool(north & 4) and bool(south & 1)
-

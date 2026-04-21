@@ -9,7 +9,7 @@ Coords = tuple[PositiveInt, PositiveInt]
 
 class Maze(BaseModel):
 
-    maze: list[list[Cell]]
+    grid: list[list[Cell]]
     entry: Coords
     exit: Coords
     path: list[Coords]

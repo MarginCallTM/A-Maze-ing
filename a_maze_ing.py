@@ -1,4 +1,3 @@
-import sys
 from maze_renderer import MazeRenderer
 from maze import Maze
 
@@ -8,7 +7,7 @@ a, b, c, d, e, f = [10, 11, 12, 13, 14, 15]
 
 def main():
     maze = Maze(
-        maze=[
+        grid=[
             [9, 1, 5, 1, 5, 5, 5, 1, 5, 5, 5, 3, d, 1, 5, 1, 5, 1, 5, 3],
             [e, a, d, 0, 5, 5, 7, a, b, d, 3, c, 7, 8, 7, c, 7, c, 7, a],
             [9, 0, 1, 4, 7, 9, 5, 0, 4, 1, 4, 1, 7, a, 9, 1, 1, 3, d, 2],
