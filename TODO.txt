@@ -47,8 +47,9 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 [x] Positionner et intégrer le motif dans le labyrinthe généré
     (pattern posé AVANT le DFS, cellules marquées visitées,
     le DFS contourne automatiquement)
-[ ] Vérifier que la taille du labyrinthe est suffisante,
+[x] Vérifier que la taille du labyrinthe est suffisante,
     sinon afficher un message d'erreur sur la console
+    (seuil : width >= 9 et height >= 7, warning sur stderr)
 
 1.4 — Algorithme de résolution (plus court chemin)
 ----------------------------------------------------

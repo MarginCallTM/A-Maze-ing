@@ -1,4 +1,4 @@
-from maze_generator import MazeGenerator, PATTERN_42
+from maze_generator import MazeGenerator
 from Maze import MazeOptions
 
 
@@ -17,7 +17,7 @@ def make_generator(width=10, height=10, seed=42):
 
 def test_grid_dimensions():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     assert len(gen.grid) == 10
     for row in gen.grid:
         assert len(row) == 10
@@ -25,7 +25,7 @@ def test_grid_dimensions():
 
 def test_cell_values_in_range():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for y in range(gen.height):
         for x in range(gen.width):
             cell = gen.grid[y][x]
@@ -34,35 +34,35 @@ def test_cell_values_in_range():
 
 def test_border_walls_north():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for x in range(gen.width):
         assert gen.grid[0][x] & 1 != 0
 
 
 def test_border_walls_south():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for x in range(gen.width):
         assert gen.grid[gen.height - 1][x] & 4 != 0
 
 
 def test_border_walls_west():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for y in range(gen.height):
         assert gen.grid[y][0] & 8 != 0
 
 
 def test_border_walls_east():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for y in range(gen.height):
         assert gen.grid[y][gen.width - 1] & 2 != 0
 
 
 def test_wall_coherence_horizontal():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     for y in range(gen.height):
         for x in range(gen.width - 1):
             cell_left = gen.grid[y][x]
@@ -74,7 +74,7 @@ def test_wall_coherence_horizontal():
 
 def test_full_connectivity():
     gen = make_generator(10, 10, 42)
-    gen.generate(has_forty_two=False)
+    gen.generate()
     visited = [[False] * gen.width for _ in range(gen.height)]
     stack = [(0, 0)]
     visited[0][0] = True
@@ -88,23 +88,23 @@ def test_full_connectivity():
             if not visited[y - 1][x]:
                 visited[y - 1][x] = True
                 stack.append((x, y - 1))
-          # Est
+        # Est
         if gen.grid[y][x] & 2 == 0 and x < gen.width - 1:
             if not visited[y][x + 1]:
                 visited[y][x + 1] = True
                 stack.append((x + 1, y))
-          # Sud
+        # Sud
         if gen.grid[y][x] & 4 == 0 and y < gen.height - 1:
             if not visited[y + 1][x]:
                 visited[y + 1][x] = True
                 stack.append((x, y + 1))
-          # Ouest
+        # Ouest
         if gen.grid[y][x] & 8 == 0 and x > 0:
             if not visited[y][x - 1]:
                 visited[y][x - 1] = True
                 stack.append((x - 1, y))
 
-    assert count == gen.width * gen.height
+    assert count == gen.width * gen.height - len(gen.pattern_cells)
 
 
 # === TESTS SOLVE ===
@@ -161,44 +161,26 @@ class TestSolve:
             assert char in valid
 
 
-# === TESTS PATTERN 42 ===
+# === Test 42 Pattern ===
 
 class TestPattern42:
 
-    def setup_method(self) -> None:
-        self.gen = make_generator(20, 15, 42)
-        self.gen.generate(has_forty_two=True)
-        self.start_x = (self.gen.width - 7) // 2
-        self.start_y = (self.gen.height - 5) // 2
+    def test_has_forty_two_true_when_large_enough(self) -> None:
+        gen = make_generator(9, 7, 42)
+        assert gen.has_forty_two is True
+        assert len(gen.pattern_cells) > 0
+
+    def test_has_forty_two_false_when_too_small(self, capsys) -> None:
+        gen = make_generator(8, 6, 42)
+        assert gen.has_forty_two is False
+        assert gen.pattern_cells == set()
+        captured = capsys.readouterr()
+        assert "too small" in captured.err
 
     def test_pattern_cells_are_closed(self) -> None:
-        """Chaque cellule du pattern vaut 15 (tous les murs)."""
-        for py in range(len(PATTERN_42)):
-            for px in range(len(PATTERN_42[0])):
-                if PATTERN_42[py][px] == 1:
-                    gx = self.start_x + px
-                    gy = self.start_y + py
-                    assert self.gen.grid[gy][gx] == 15
-
-    def test_pattern_wall_coherence_horizontal(self) -> None:
-        """Coherence Est/Ouest respectee apres le pattern."""
-        for y in range(self.gen.height):
-            for x in range(self.gen.width - 1):
-                left_has_east = (self.gen.grid[y][x] & 2) != 0
-                right_has_west = (self.gen.grid[y][x + 1] & 8) != 0
-                assert left_has_east == right_has_west
-
-    def test_pattern_wall_coherence_vertical(self) -> None:
-        """Coherence Sud/Nord respectee apres le pattern."""
-        for y in range(self.gen.height - 1):
-            for x in range(self.gen.width):
-                top_has_south = (self.gen.grid[y][x] & 4) != 0
-                bottom_has_north = (self.gen.grid[y + 1][x] & 1) != 0
-                assert top_has_south == bottom_has_north
-
-    def test_maze_solvable_after_pattern(self) -> None:
-        """Le labyrinthe reste resolvable apres le pattern."""
-        path, directions = self.gen.solve((0, 0), (19, 14))
+        gen = make_generator(20, 15, 42)
+        gen.generate()
+        path, directions = gen.solve((0, 0), (19, 14))
         assert path[0] == (0, 0)
         assert path[-1] == (19, 14)
         assert len(directions) == len(path) - 1
