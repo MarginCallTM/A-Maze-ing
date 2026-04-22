@@ -1,12 +1,12 @@
 import random
 import sys
 from collections import deque
-from Maze import MazeOptions
+from maze_generator.maze import MazeOptions, Maze
 
 PATTERN_42 = [
     [1, 0, 1, 0, 1, 1, 1],
     [1, 0, 1, 0, 0, 0, 1],
-    [1, 1, 1, 0, 0, 1, 0],
+    [1, 1, 1, 0, 1, 1, 1],
     [0, 0, 1, 0, 1, 0, 0],
     [0, 0, 1, 0, 1, 1, 1],
 ]
@@ -45,6 +45,8 @@ class MazeGenerator():
                 file=sys.stderr
             )
 
+        # Raise avec MazeError
+
     def _get_unvisited_neighbors(
         self, x: int, y: int, visited: list[list[bool]]
     ) -> list[tuple[int, int]]:
@@ -70,6 +72,17 @@ class MazeGenerator():
         elif x2 < x1:  # West
             self.grid[y1][x1] &= ~8
             self.grid[y2][x2] &= ~2
+
+    def _is_3x3_open(self, X: int, Y: int) -> bool:
+        for dx in range(2):
+            for dy in range(3):
+                if self.grid[Y + dy][X + dx] & 2:
+                    return False
+        for dx in range(3):
+            for dy in range(2):
+                if self.grid[Y + dy][X + dx] & 4:
+                    return False
+        return True
 
     def generate(self) -> list[list[int]]:
         visited = [[False for i in range(self.width)]
@@ -143,3 +156,14 @@ class MazeGenerator():
                     path_directions += direction
                     break
         return path_coords, path_directions
+
+    def build(self) -> Maze:
+        self.generate()
+        path_coords, _ = self.solve(self.entry, self.exit)
+        return Maze(
+            grid=self.grid,
+            entry=self.entry,
+            exit=self.exit,
+            path=path_coords,
+            mask=list(self.pattern_cells)
+        )

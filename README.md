@@ -108,8 +108,6 @@ starting with `#` are comments and are ignored.
 | Key            | Description                               | Example          |
 |----------------|-------------------------------------------|------------------|
 | `SEED`         | Seed for random generation (reproducible) | `SEED=42`        |
-| `ALGORITHM`    | Generation algorithm to use               | `ALGORITHM=DFS`  |
-| `DISPLAY_MODE` | Visual display mode                       | `DISPLAY_MODE=ascii` |
 
 A default `config.txt` is provided at the root of the repository.
 

@@ -37,3 +37,9 @@ class MazeOptions(BaseModel):
         if self.exit[0] >= self.width or self.exit[1] >= self.height:
             raise ValueError("Maze exit out of bound")
         return self
+
+    @model_validator(mode='after')
+    def forty_two_validator(self) -> Self:
+        if self.width < 9 or self.height < 7:
+            self.has_forty_two = False
+        return self

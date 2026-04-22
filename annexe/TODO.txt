@@ -1,6 +1,6 @@
 ================================================================
          A-MAZE-ING — TO-DO LIST (42, v2.1)
-         Dernière mise à jour : 2026-04-22
+         Dernière mise à jour : 2026-04-22 (v2)
 ================================================================
 
 Légende :
@@ -8,107 +8,119 @@ Légende :
 
 
 ================================================================
+STRUCTURE ACTUELLE DU REPO
+================================================================
+
+Racine/
+├── a_maze_ing.py       — point d'entrée (CASSÉ, voir bug 1)
+├── maze_renderer.py    — classe MazeRenderer (ASCII terminal)
+├── demo_render.py      — banc d'essai visuel (OK, fonctionne)
+├── config.txt          — config par défaut
+├── Makefile            — install/run/debug/clean/lint/lint-strict
+├── README.md           — quasi-complet
+├── requirements-dev.txt
+├── maze_generator/     — futur package mazegen (sans __init__.py pour l'instant)
+│   ├── maze_generator.py  — classe MazeGenerator (DFS + solve + build)
+│   └── maze.py            — modèles pydantic Maze et MazeOptions
+└── annexe/
+    ├── test_generator.py  — suite pytest
+    ├── TODO.txt            — ce fichier
+    └── en.subject.pdf
+
+
+================================================================
 PHASE 0 — Setup du projet
 ================================================================
-[x] Créer le repo Git et initialiser .gitignore
-    (Python artifacts : __pycache__, .mypy_cache, .venv, *.pyc)
-[x] Créer un environnement virtuel (python -m venv .venv)
-[x] Installer les dépendances de dev : flake8, mypy, pytest
-[x] Créer le Makefile avec les règles :
-    install | run | debug | clean | lint | lint-strict
+[x] Repo Git + .gitignore Python
+[x] venv (.venv)
+[x] flake8, mypy, pytest installés
+[x] Makefile : install | run | debug | clean | lint | lint-strict
 
 
 ================================================================
-BUGS / DETTE TECHNIQUE — À RÉGLER EN PRIORITÉ
+BUGS / DETTE TECHNIQUE
 ================================================================
 
-[!] a_maze_ing.py est CASSÉ
-    - `import sys` manquant (utilisé ligne 9)
-    - main() se contente de print le nom du fichier de config
-    - Le vrai code (construction Maze + renderer) est entièrement
-      commenté, et `renderer = MazeRenderer(maze)` est en dehors
-      de toute fonction => NameError à l'import
-    => À refaire proprement une fois la phase 1.1 (parser) et 1.5
-       (writer) disponibles.
+[x] Bug 2 — lignes 5-6 module-level dans test_generator.py
+    => retirées (et fichier déplacé dans annexe/)
 
-[!] test_generator.py ligne 5-6 : ancienne signature
-    `MazeGenerator(4, 4, 42)` ne correspond plus à
-    `MazeGenerator(options: MazeOptions)`.
-    => Supprimer ces 2 lignes au module-level (le reste des tests
-       utilise déjà make_generator() qui est correct).
+[x] Bug 3 — casse `from Maze` → `from maze`
+    => corrigé dans maze_generator.py, maze_renderer.py, tests
+    (reste à mettre à jour README.md ligne 179, mineur)
 
-[!] Incohérence nom de module : `maze.py` (fichier) vs
-    `from Maze import ...` (imports dans maze_generator.py et
-    test_generator.py). Sur Linux (case-sensitive) l'un des deux
-    doit être faux.
-    => Uniformiser sur `maze.py` (fichier en minuscule) et
-       remplacer `from Maze import` par `from maze import`.
+[x] Bug 4 — mask non alimenté depuis pattern_cells
+    => résolu par la méthode build() qui fait mask=list(gen.pattern_cells)
 
-[!] Le modèle `Maze` (maze.py) a un champ `mask: list[Coords]` mais
-    le generator expose `self.pattern_cells: set[tuple[int, int]]`.
-    => Lors du wiring dans a_maze_ing.py, convertir en list au
-       moment de construire le Maze : `mask=list(gen.pattern_cells)`.
+[!] Bug 1 — a_maze_ing.py encore CASSÉ
+    - import sys : ✅ présent
+    - main() : ne fait toujours que print le nom du fichier
+    - code mort commenté à nettoyer
+    - `renderer = MazeRenderer(maze)` hors de toute fonction
+    => À reprendre entièrement lors du wiring (phase 1.1 + 1.5 finis)
 
 
 ================================================================
 PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 ================================================================
 
-1.1 — Parsing du fichier de config
+1.1 — Parsing du fichier de config  [à charge du collaborateur]
 ------------------------------------
-[ ] Parser config.txt format KEY=VALUE, ignorer les lignes #
-    (et ignorer les lignes vides)
+[ ] Parser config.txt format KEY=VALUE, ignorer les `#` et lignes vides
 [ ] Valider les clés obligatoires :
     WIDTH, HEIGHT, ENTRY, EXIT, OUTPUT_FILE, PERFECT
-[ ] Gérer toutes les erreurs gracieusement :
-    - fichier absent (FileNotFoundError)
-    - syntaxe invalide (pas de `=`, clé inconnue, valeur invalide)
-    - paramètres impossibles (entry hors bornes, etc.)
-    - jamais de traceback Python brut à l'utilisateur
 [ ] Supporter les clés optionnelles : SEED, ALGORITHM, DISPLAY_MODE
+[ ] Gérer toutes les erreurs gracieusement (pas de traceback Python brut)
+    - fichier absent, syntaxe invalide, paramètres impossibles
 [x] Fournir un config.txt par défaut dans le repo
-    (20x15, ENTRY=0,0 EXIT=19,14 PERFECT=True SEED=42 ALGORITHM=DFS)
 [ ] Déléguer la validation finale à MazeOptions (pydantic)
 
 1.2 — Algorithme de génération
 --------------------------------
-[x] Algorithme DFS Recursive Backtracker (itératif, stack explicite)
-    dans maze_generator.py
+[x] DFS Recursive Backtracker (itératif, stack explicite)
 [x] Génération aléatoire avec SEED pour reproductibilité
-[x] Connectivité totale (DFS spanning tree)
-[x] Pas de zone ouverte 3x3 (conséquence directe du spanning tree)
-[x] Murs cohérents (_remove_wall() met à jour les 2 cellules)
-[x] Murs de bordure externes (grille initialisée à 15 = 0b1111)
-[x] Mode PERFECT=True garanti par construction (spanning tree)
+[x] Connectivité totale (spanning tree)
+[x] Pas de zone 3x3 ouverte (garanti par la structure d'arbre du DFS)
+[x] Murs cohérents (_remove_wall met à jour les 2 cellules)
+[x] Murs de bordure externes (grille initialisée à 15)
+[x] Mode PERFECT=True (garanti par construction)
+[ ] Mode PERFECT=False  ← EN COURS
+    [ ] Méthode _would_create_3x3_open(x1, y1, x2, y2) -> bool
+    [ ] Méthode _imperfect() : casse 10% des murs internes candidats
+        sous contrainte 3x3
+    [ ] Branche dans build() : `if not self.perfect: self._imperfect()`
 
 1.3 — Pattern "42"
 --------------------
-[x] Motif "42" = cellules totalement fermées (valeur 15)
-[x] Pattern centré, posé AVANT le DFS (cellules marquées visited)
-[x] Warning sur stderr si maze trop petit (width<9 ou height<7)
-[ ] Vérifier que ENTRY / EXIT ne tombent pas dans pattern_cells
-    (sinon maze invalide car entry/exit dans cellule fermée)
-    => validation à faire côté parser / MazeOptions
+[x] Cellules totalement fermées (valeur 15)
+[x] Pattern centré, posé AVANT le DFS (visited=True)
+[x] Warning stderr si maze trop petit (width<9 ou height<7)
+[ ] Vérifier que ENTRY/EXIT ne tombent pas dans pattern_cells
+    (à valider côté parser ou MazeOptions)
 
 1.4 — Algorithme de résolution (plus court chemin)
 ----------------------------------------------------
-[x] BFS entrée -> sortie (maze_generator.py > solve())
+[x] BFS entrée -> sortie
 [x] Chemin encodé en N / E / S / W
 [ ] Gérer le cas "pas de chemin trouvé" (KeyError dans came_from)
-    => aujourd'hui solve() crash si la sortie est inatteignable
 
-1.5 — Fichier de sortie
+1.5 — Fichier de sortie  [à charge du collaborateur]
 -------------------------
-[ ] Encoder chaque cellule en 1 chiffre hexadécimal minuscule/majuscule
-    Bit 0 (LSB) = Nord | Bit 1 = Est | Bit 2 = Sud | Bit 3 = Ouest
-    1 = mur fermé | 0 = mur ouvert
-[ ] Écrire les cellules ligne par ligne (une ligne par rangée)
-[ ] Après une ligne vide, ajouter sur 3 lignes :
-    - Coordonnées de l'entrée (format "x,y")
-    - Coordonnées de la sortie
-    - Plus court chemin (ex: SWSESWSSEENEESSEE...)
+[ ] Encoder chaque cellule en 1 chiffre hexadécimal
+    (bit 0 N, bit 1 E, bit 2 S, bit 3 O ; 1 = mur fermé)
+[ ] 1 ligne par rangée
+[ ] Ligne vide puis 3 lignes : entrée, sortie, chemin NESW...
 [ ] Toutes les lignes terminent par \n
 [ ] Utiliser un context manager (with open(...) as f:)
+
+
+================================================================
+NOUVEAU — Méthode build() (compromis A3)
+================================================================
+[x] Méthode build() sur MazeGenerator qui fait generate() + solve()
+    et retourne un Maze pydantic complet
+[x] Import Maze ajouté dans maze_generator.py
+[x] Banc d'essai demo_render.py à la racine (fonctionne)
+    => one-liner : `maze = MazeGenerator(options).build()`
 
 
 ================================================================
@@ -116,38 +128,37 @@ PHASE 2 — Représentation visuelle
 ================================================================
 
 [x] Mode ASCII terminal (maze_renderer.py, classe MazeRenderer)
-    - Murs (jeu de caractères box-drawing ╔╗╚╝║═╬...)
-    - Entrée (▓), sortie (░), chemin (▒), pattern "42" (█)
-    - Couleur par défaut : bleu (\033[34;5m)
-[ ] Assembler le tout dans a_maze_ing.py :
-    parser -> generator -> solver -> writer -> renderer
-[ ] Nettoyer le code mort commenté dans a_maze_ing.py
+    - Murs box-drawing ╔╗╚╝║═╬...
+    - Entrée (▓), sortie (░), chemin (▒), mask/42 (█)
+    - Couleur par défaut bleu (\033[34;5m)
+[x] Pont MazeGenerator ↔ MazeRenderer validé via demo_render.py
+[ ] Wiring dans a_maze_ing.py (dépend du parser 1.1 + writer 1.5)
 
 Interactions utilisateur OBLIGATOIRES (à implémenter) :
 [ ] 1 — Re-générer un nouveau labyrinthe et l'afficher
 [ ] 2 — Afficher / Cacher le plus court chemin
 [ ] 3 — Changer les couleurs des murs (rotation de palette)
-[ ] 4 — Quitter (sortie propre, pas de Ctrl+C)
+[ ] 4 — Quitter (sortie propre)
 [ ] (Optionnel) Couleurs spécifiques pour le pattern "42"
 
-Remarque : le rendu actuel utilise un code couleur en dur
-(`\033[34;5m`). Pour l'interaction 3, extraire la couleur en
-attribut de MazeRenderer et faire tourner une liste de codes ANSI.
+Remarque : le rendu actuel a un code couleur en dur dans render_maze.
+Pour l'interaction 3, extraire la couleur en attribut mutable de
+MazeRenderer et faire tourner une liste de codes ANSI.
 
 
 ================================================================
 PHASE 3 — Module réutilisable (Chapter VI)
 ================================================================
 
-[x] Classe MazeGenerator dans un module standalone (maze_generator.py)
+[x] Classe MazeGenerator dans un module standalone
 [~] Documentation dans README.md (section "Reusable module")
-    => à compléter : exemple complet fonctionnel
+    => mettre à jour avec l'API build() quand stable
+[ ] Ajouter __init__.py dans maze_generator/ (pour vrai package)
 [ ] Écrire pyproject.toml pour builder le package mazegen
 [ ] Builder le package : mazegen-*.tar.gz et/ou mazegen-*.whl
 [ ] Placer le fichier buildé à la RACINE du repo git
 [ ] Tester l'installation via pip install mazegen-*.whl
     dans un venv vierge
-[ ] Vérifier que le module est autonome (pas d'import relatif cassé)
 
 
 ================================================================
@@ -155,19 +166,19 @@ PHASE 4 — Qualité du code (norme 42)
 ================================================================
 
 [~] Type hints
-    - OK dans maze_generator.py, maze.py
-    - À vérifier dans maze_renderer.py (retours privés, tree)
-    - À faire dans a_maze_ing.py (une fois réécrit)
-[ ] Docstrings PEP 257 (Google ou NumPy) sur TOUTES les classes
-    et fonctions publiques
-    - MazeGenerator.__init__ / generate / solve
+    - OK dans maze_generator.py et maze.py
+    - À vérifier dans maze_renderer.py et demo_render.py
+    - À faire dans a_maze_ing.py (quand réécrit)
+[ ] Docstrings PEP 257 sur TOUTES les classes et méthodes publiques
+    - MazeGenerator.__init__ / generate / solve / build
     - MazeRenderer.__init__ / render_maze
-    - Maze, MazeOptions (classes pydantic)
+    - Maze, MazeOptions (pydantic)
+    - Documenter la non-idempotence de generate()/build()
 [ ] `make lint` passe sans erreurs
 [ ] `make lint-strict` (mypy --strict) passe sans erreurs
-[ ] Aucune exception non gérée (try/except aux boundaries : fichiers, argv)
-[x] Tests pytest pour cas nominaux et edge cases (test_generator.py)
-    => à corriger : voir section BUGS [!] ligne 5-6
+[ ] Aucune exception non gérée (try/except aux boundaries)
+[x] Tests pytest (test_generator.py)
+    [ ] Ajouter tests pour build() et PERFECT=False
 
 
 ================================================================
@@ -178,47 +189,48 @@ PHASE 5 — README.md
 [x] Section Description
 [x] Section Instructions (install, run, debug, test, lint)
 [x] Section Resources (références + usage IA)
-[x] Section Config file (clés obligatoires + optionnelles)
-[x] Section Algorithm (DFS + BFS + pattern 42 + justifications)
+[x] Section Config file
+[x] Section Algorithm (DFS + BFS + pattern 42)
 [~] Section Reusable module
-    - Exemple minimal présent
-    - "Package build" à compléter une fois Phase 3 faite
-[x] Section Team & Project management (rôles, planning, outils)
+    [x] Exemple minimal
+    [ ] Mettre à jour avec API build()
+    [ ] Section "Package build" (dépend Phase 3)
+[x] Section Team & Project management
 
 
 ================================================================
 PHASE 6 — Bonus (après validation du mandatory)
 ================================================================
 
-[ ] Supporter plusieurs algorithmes de génération
-    (Prim, Kruskal, Recursive Backtracker)
-    => sélectionnable via la clé ALGORITHM dans config.txt
-    => aujourd'hui la clé est lue mais ignorée
-[ ] Animation de génération pas-à-pas (yield à chaque _remove_wall ?)
+[ ] Multiples algorithmes de génération (Prim, Kruskal, ...)
+    => clé ALGORITHM dans config.txt (aujourd'hui lue mais ignorée)
+[ ] Animation de génération pas-à-pas
 
 
 ================================================================
-ORDRE CONSEILLÉ (à partir de maintenant)
+CE QU'IL RESTE À BUILD — VUE D'ENSEMBLE
 ================================================================
 
-1. Corriger les 4 bugs listés dans la section BUGS
-2. Phase 1.1 (parser config.txt)
-3. Phase 1.5 (writer fichier de sortie hex)
-4. Wiring a_maze_ing.py (main pipeline end-to-end, sans interactions)
-5. Phase 2 : interactions utilisateur (1/2/3/4)
-6. Phase 4 : docstrings + `make lint-strict` clean
-7. Phase 3 : pyproject.toml + build mazegen-*.whl
-8. Phase 5 : finir la section "Reusable module" du README
-9. Phase 6 : bonus (si temps)
+Court terme (ma part — Adrien) :
+  1. _would_create_3x3_open()          ← ON EST ICI
+  2. _imperfect()
+  3. Brancher dans build() (if not perfect)
+  4. Tester visuellement via demo_render.py avec perfect=False
+  5. Ajouter tests pytest pour PERFECT=False
+  6. Docstrings sur MazeGenerator
 
+Court terme (binôme) :
+  A. Parser config.txt (1.1)
+  B. Writer fichier hex (1.5)
 
-RAPPEL NORME 42 :
-- Python 3.10+
-- flake8 + mypy (sans erreurs)
-- Type hints partout
-- Docstrings PEP 257
-- Makefile : install | run | debug | clean | lint
-- .gitignore Python
-- config.txt par défaut dans le repo
+Moyen terme (ensemble) :
+  - Wiring a_maze_ing.py (main pipeline)
+  - Phase 2 interactions (1/2/3/4)
+  - Phase 4 lint clean
+
+Long terme :
+  - Phase 3 pyproject.toml + build mazegen-*.whl
+  - Phase 5 finir section Reusable module du README
+  - Phase 6 bonus (multi-algo, animation)
 
 ================================================================
