@@ -2,6 +2,8 @@ import pytest
 from maze_generator import MazeGenerator
 from Maze import MazeOptions
 
+maze = MazeGenerator(4, 4, 42)
+maze.generate()
 
 def make_generator(
     width: int = 10, height: int = 10, seed: int = 42

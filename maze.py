@@ -9,16 +9,17 @@ Coords = tuple[PositiveInt, PositiveInt]
 
 class Maze(BaseModel):
 
-    maze: list[list[Cell]]
+    grid: list[list[Cell]]
     entry: Coords
     exit: Coords
     path: list[Coords]
+    mask: list[Coords]
 
 
 class MazeOptions(BaseModel):
 
-    width: int = Field(ge=3)
-    height: int = Field(ge=3)
+    width: int = Field(ge=2)
+    height: int = Field(ge=2)
     entry: Coords
     exit: Coords
     output_file: str
