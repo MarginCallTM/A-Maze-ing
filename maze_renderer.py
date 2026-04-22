@@ -1,7 +1,6 @@
-from maze import Maze, Cell
+from maze_generator import Maze, Cell
 from operator import add, sub
 from functools import reduce
-# from os import system
 
 
 class MazeRenderer:
@@ -28,7 +27,6 @@ class MazeRenderer:
         self.__add_path(display)
         self.__add_entry(display)
         self.__add_exit(display)
-        # system('clear')
         for row in display:
             print(f"\033[34;5m{reduce(add, row)}\033[0m")
 

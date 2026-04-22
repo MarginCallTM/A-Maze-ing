@@ -1,6 +1,7 @@
-from maze_renderer import MazeRenderer
-from maze import Maze
-
+# from maze_renderer import MazeRenderer
+# from maze_generator.maze import Maze
+import sys
+from maze_generator import MazeGenerator
 
 a, b, c, d, e, f = [10, 11, 12, 13, 14, 15]
 
@@ -11,6 +12,7 @@ def main() -> None:
         sys.exit(1)
     config_file = sys.argv[1]
     print(f"{config_file}")
+    MazeGenerator.from_config_file(config_file)
 
 # def main():
 #     maze = Maze(
@@ -55,8 +57,8 @@ def main() -> None:
 #         ]
 #     )
 
-    renderer = MazeRenderer(maze)
-    renderer.render_maze()
+    # renderer = MazeRenderer(maze)
+    # renderer.render_maze()
 
 
 if __name__ == "__main__":
