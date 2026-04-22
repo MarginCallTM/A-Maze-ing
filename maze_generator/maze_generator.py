@@ -1,7 +1,7 @@
 import random
 import sys
 from collections import deque
-from .maze import MazeOptions, MazeError
+from .maze import MazeOptions, MazeError, Maze
 from typing import Self
 import re
 
@@ -102,6 +102,34 @@ class MazeGenerator():
             self.grid[y1][x1] &= ~8
             self.grid[y2][x2] &= ~2
 
+    def _add_wall(self, x1: int, y1: int, x2: int, y2: int) -> None:
+        if y2 < y1:
+            self.grid[y1][x1] |= 1
+            self.grid[y2][x2] |= 4
+        elif x2 > x1:
+            self.grid[y1][x1] |= 2
+            self.grid[y2][x2] |= 8
+        elif y2 > y1:
+            self.grid[y1][x1] |= 4
+            self.grid[y2][x2] |= 1
+        elif x2 < x1:
+            self.grid[y1][x1] |= 8
+            self.grid[y2][x2] |= 2
+
+    def _would_create_3x3_open(
+            self, x1: int, y1: int, x2: int, y2: int
+    ) -> bool:
+        self._remove_wall(x1, y1, x2, y2)
+        xmin, xmax = min(x1, x2), max(x1, x2)
+        ymin, ymax = min(y1, y2), max(y1, y2)
+        result = False
+        for X in range(max(0, xmax - 2), min(self.width - 3, xmin) + 1):
+            for Y in range(max(0, ymax - 2), min(self.height - 3, ymin) + 1):
+                if self._is_3x3_open(X, Y):
+                    result = True
+        self._add_wall(x1, y1, x2, y2)
+        return result
+
     def _is_3x3_open(self, X: int, Y: int) -> bool:
         for dx in range(2):
             for dy in range(3):
@@ -112,6 +140,30 @@ class MazeGenerator():
                 if self.grid[Y + dy][X + dx] & 4:
                     return False
         return True
+    
+    def _imperfect(self) -> None:
+        candidates = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) in self.pattern_cells:
+                    continue
+                if (x + 1 < self.width
+                        and (x + 1, y) not in self.pattern_cells
+                        and self.grid[y][x] & 2):
+                    candidates.append((x, y, x + 1, y))
+                if (y + 1 < self.height
+                        and (x, y + 1) not in self.pattern_cells
+                        and self.grid[y][x] & 4):
+                    candidates.append((x, y, x, y + 1))
+        random.shuffle(candidates)
+        target = max(1, len(candidates) // 10)
+        removed = 0
+        for x1, y1, x2, y2 in candidates:
+            if removed >= target:
+                break
+            if not self._would_create_3x3_open(x1, y1, x2, y2):
+                self._remove_wall(x1, y1, x2, y2)
+                removed += 1
 
     def generate(self) -> list[list[int]]:
         visited = [[False for i in range(self.width)]
@@ -188,6 +240,8 @@ class MazeGenerator():
 
     def build(self) -> Maze:
         self.generate()
+        if not self.perfect:
+            self._imperfect()
         path_coords, _ = self.solve(self.entry, self.exit)
         return Maze(
             grid=self.grid,

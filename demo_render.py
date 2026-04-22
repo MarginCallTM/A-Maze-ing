@@ -5,12 +5,12 @@ from maze_renderer import MazeRenderer
 
 def main() -> None:
     options = MazeOptions(
-        width=20,
-        height=20,
+        width=150,
+        height=150,
         entry=(0, 0),
-        exit=(19, 19),
+        exit=(149, 149),
         output_file="maze.txt",
-        perfect=True,
+        perfect=False,
         seed="50",
     )
     maze = MazeGenerator(options).build()
