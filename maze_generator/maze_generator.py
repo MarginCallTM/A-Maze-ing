@@ -1,7 +1,9 @@
 import random
 import sys
 from collections import deque
-from Maze import MazeOptions
+from .maze import MazeOptions, MazeError
+from typing import Self
+import re
 
 PATTERN_42 = [
     [1, 0, 1, 0, 1, 1, 1],
@@ -44,6 +46,33 @@ class MazeGenerator():
                 f"too small for '42' pattern, logo",
                 file=sys.stderr
             )
+
+    # @classmethod
+    @staticmethod
+    def from_config_file(config_file: str) -> None:
+
+        keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+
+        missing_keys = keys.copy()
+
+        lines = []
+        with open(config_file) as configs:
+            lines = configs.readlines()
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("#"):
+                continue
+            if key_error := re.match(r'^([A-Z_]+)?=$', line):
+                raise MazeError(f"Key {key_error.groups()[0]} "
+                                "is missing a value")
+            if match := re.match(r'^([A-Z_]+)=(.*)$', line):
+                key, value = match.groups()
+                if key in missing_keys:
+                    missing_keys.remove(key)
+                print(key, value)
+                # if (key in ("WIDTH", "HEIGHT") and
+                #     (vals := value.split(value))):
 
     def _get_unvisited_neighbors(
         self, x: int, y: int, visited: list[list[bool]]
