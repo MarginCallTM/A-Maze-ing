@@ -1,4 +1,4 @@
-from maze_generator.maze import Maze, Cell
+from maze_generator import Maze, Cell
 from operator import add, sub
 from functools import reduce
 
