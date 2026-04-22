@@ -16,6 +16,10 @@ class Maze(BaseModel):
     mask: list[Coords]
 
 
+class MazeError(Exception):
+    pass
+
+
 class MazeOptions(BaseModel):
 
     width: int = Field(ge=2)

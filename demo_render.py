@@ -5,10 +5,10 @@ from maze_renderer import MazeRenderer
 
 def main() -> None:
     options = MazeOptions(
-        width=250,
-        height=250,
+        width=20,
+        height=20,
         entry=(0, 0),
-        exit=(249, 249),
+        exit=(19, 19),
         output_file="maze.txt",
         perfect=True,
         seed="50",
