@@ -1,5 +1,5 @@
 from maze import Maze, Cell
-from operator import add
+from operator import add, sub
 from functools import reduce
 # from os import system
 
@@ -30,7 +30,7 @@ class MazeRenderer:
         self.__add_exit(display)
         # system('clear')
         for row in display:
-            print(f"\033[34m{reduce(add, row)}\033[0m")
+            print(f"\033[34;5m{reduce(add, row)}\033[0m")
 
     def __add_entry(self, grid: list[list[str]]) -> None:
 
@@ -46,8 +46,16 @@ class MazeRenderer:
 
     def __add_path(self, grid: list[list[str]]) -> None:
 
+        prev = None
+
         for pos in self.maze.path:
             grid[pos[1] * 2 + 1][pos[0] * 2 + 1] = self.path_char * 3
+            if prev is not None:
+                direction = tuple(map(sub, pos, prev))
+                y = (pos[1] * 2 + 1) - direction[1]
+                x = (pos[0] * 2 + 1) - direction[0]
+                grid[y][x] = self.path_char * 3 if x % 2 else self.path_char
+            prev = pos
 
     def __add_mask(self, grid: list[list[str]]) -> None:
 
@@ -106,11 +114,11 @@ class MazeRenderer:
 
                 if (x < self.x_len - 1 and
                         not self.has_x_wall(m_grid[y][x], m_grid[y][x + 1])):
-                    grid[y * 2 + 1][(x + 1) * 2] = " "
+                    grid[y * 2 + 1][(x + 1) * 2] = self.tree[0][0][0][0]
 
                 if (y < self.y_len - 1 and
                         not self.has_y_wall(m_grid[y][x], m_grid[y + 1][x])):
-                    grid[(y + 1) * 2][x * 2 + 1] = "   "
+                    grid[(y + 1) * 2][x * 2 + 1] = self.tree[0][0][0][0] * 3
 
     def __apply_crossing(self, grid: list[list[str]]) -> None:
 
