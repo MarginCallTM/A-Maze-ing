@@ -6,10 +6,10 @@ from maze_generator.maze_writer import write_maze
 
 def main() -> None:
     options = MazeOptions(
-        width=200,
-        height=200,
+        width=20,
+        height=20,
         entry=(0, 0),
-        exit=(199, 199),
+        exit=(19, 19),
         output_file="maze.txt",
         perfect=True,
         seed="50",

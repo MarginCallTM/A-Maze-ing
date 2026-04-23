@@ -17,6 +17,11 @@ class MazeRenderer:
         self.mask_char = '█'
         self.y_len = len(maze.grid)
         self.x_len = len(maze.grid[0])
+        self.palette: list[str] = [
+            "\033[34m", "\033[32m", "\033[33m",
+            "\033[31m", "\033[35m", "\033[36m",
+        ]
+        self.color_index: int = 0
 
     def render_maze(self) -> None:
 
@@ -28,7 +33,7 @@ class MazeRenderer:
         self.__add_entry(display)
         self.__add_exit(display)
         for row in display:
-            print(f"\033[34m{reduce(add, row)}\033[0m")
+            print(f"{self.palette[self.color_index]}{reduce(add, row)}\033[0m")
 
     def __add_entry(self, grid: list[list[str]]) -> None:
 
