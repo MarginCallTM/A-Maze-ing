@@ -30,6 +30,7 @@ class MazeGenerator():
             self.width >= pattern_w + 2 and self.height >= pattern_h + 2
         )
         self.pattern_cells: set[tuple[int, int]] = set()
+        self.output_file = options.output_file
 
         if self.has_forty_two:
             start_x = (self.width - pattern_w) // 2
@@ -276,3 +277,14 @@ class MazeGenerator():
             mask=list(self.pattern_cells),
             path_directions=path_directions,
         )
+
+    @staticmethod
+    def write_maze(maze: Maze, output_file: str) -> None:
+        with open(output_file, "w") as f:
+            for row in maze.grid:
+                line = "".join(f"{cell:X}" for cell in row)
+                f.write(line + "\n")
+            f.write("\n")
+            f.write(f"{maze.entry[0]},{maze.entry[1]}\n")
+            f.write(f"{maze.exit[0]},{maze.exit[1]}\n")
+            f.write(f"{maze.path_directions}\n")

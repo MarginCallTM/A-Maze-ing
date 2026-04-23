@@ -13,6 +13,7 @@ def main() -> None:
     print(f"{config_file}")
     maze_generator = MazeGenerator.from_config_file(config_file)
     maze = maze_generator.build()
+    maze_generator.write_maze(maze, maze_generator.output_file)
     renderer = MazeRenderer(maze)
     renderer.render_maze()
 

@@ -22,6 +22,7 @@ class MazeRenderer:
             "\033[31m", "\033[35m", "\033[36m",
         ]
         self.color_index: int = 0
+        self.show_path: bool = False
 
     def render_maze(self) -> None:
 
