@@ -14,6 +14,7 @@ class Maze(BaseModel):
     exit: Coords
     path: list[Coords]
     mask: list[Coords]
+    path_directions: str
 
 
 class MazeError(Exception):
