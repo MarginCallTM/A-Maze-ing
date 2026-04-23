@@ -96,8 +96,6 @@ class MazeGenerator():
         for key in [key for key in config if key.upper() not in known_keys]:
             del config[key]
 
-        print(config)
-
         options = MazeOptions(**config)
 
         return cls(options)
