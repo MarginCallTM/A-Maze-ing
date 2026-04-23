@@ -1,6 +1,6 @@
 ================================================================
          A-MAZE-ING — TO-DO LIST (42, v2.1)
-         Dernière mise à jour : 2026-04-22 (v2)
+         Dernière mise à jour : 2026-04-23 (v3 — phase 1.5 writer done)
 ================================================================
 
 Légende :
@@ -83,11 +83,13 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 [x] Murs cohérents (_remove_wall met à jour les 2 cellules)
 [x] Murs de bordure externes (grille initialisée à 15)
 [x] Mode PERFECT=True (garanti par construction)
-[ ] Mode PERFECT=False  ← EN COURS
-    [ ] Méthode _would_create_3x3_open(x1, y1, x2, y2) -> bool
-    [ ] Méthode _imperfect() : casse 10% des murs internes candidats
-        sous contrainte 3x3
-    [ ] Branche dans build() : `if not self.perfect: self._imperfect()`
+[x] Mode PERFECT=False
+    [x] Méthode _is_3x3_open(X, Y) -> bool
+    [x] Méthode _add_wall(x1, y1, x2, y2) (inverse de _remove_wall)
+    [x] Méthode _would_create_3x3_open(x1, y1, x2, y2) -> bool
+    [x] Méthode _imperfect() : casse 10% des murs internes candidats
+        sous contrainte 3x3 + exclusion du pattern 42 (les 2 cellules)
+    [x] Branche dans build() : `if not self.perfect: self._imperfect()`
 
 1.3 — Pattern "42"
 --------------------
@@ -103,14 +105,20 @@ PHASE 1 — Partie obligatoire : Générateur de labyrinthe
 [x] Chemin encodé en N / E / S / W
 [ ] Gérer le cas "pas de chemin trouvé" (KeyError dans came_from)
 
-1.5 — Fichier de sortie  [à charge du collaborateur]
+1.5 — Fichier de sortie  [à charge Adrien]
 -------------------------
-[ ] Encoder chaque cellule en 1 chiffre hexadécimal
+[x] Encoder chaque cellule en 1 chiffre hexadécimal
     (bit 0 N, bit 1 E, bit 2 S, bit 3 O ; 1 = mur fermé)
-[ ] 1 ligne par rangée
-[ ] Ligne vide puis 3 lignes : entrée, sortie, chemin NESW...
-[ ] Toutes les lignes terminent par \n
-[ ] Utiliser un context manager (with open(...) as f:)
+[x] 1 ligne par rangée
+[x] Ligne vide puis 3 lignes : entrée, sortie, chemin NESW...
+[x] Toutes les lignes terminent par \n
+[x] Utiliser un context manager (with open(...) as f:)
+    => Implémenté dans maze_generator/maze_writer.py
+       Fonction : write_maze(maze: Maze, output_file: str) -> None
+       Ajout du champ path_directions: str dans Maze (maze.py)
+       build() remplit désormais path_directions depuis solve()
+    [ ] Docstring PEP 257 (à faire lors de la passe finale flake8/mypy)
+    [ ] Test pytest dédié (cf. Phase 4)
 
 
 ================================================================
@@ -212,16 +220,14 @@ CE QU'IL RESTE À BUILD — VUE D'ENSEMBLE
 ================================================================
 
 Court terme (ma part — Adrien) :
-  1. _would_create_3x3_open()          ← ON EST ICI
-  2. _imperfect()
-  3. Brancher dans build() (if not perfect)
-  4. Tester visuellement via demo_render.py avec perfect=False
-  5. Ajouter tests pytest pour PERFECT=False
-  6. Docstrings sur MazeGenerator
+  1. [x] Mode PERFECT=False (méthodes 3x3 + _imperfect + branche build)
+  2. [x] Writer fichier hex (1.5)
+  3. Tester visuellement via demo_render.py avec perfect=False   ← ON EST ICI
+  4. Ajouter tests pytest pour PERFECT=False et writer
+  5. Docstrings sur MazeGenerator + write_maze (passe finale)
 
 Court terme (binôme) :
-  A. Parser config.txt (1.1)
-  B. Writer fichier hex (1.5)
+  A. Parser config.txt (1.1)  ← en cours (from_config_file amorcée)
 
 Moyen terme (ensemble) :
   - Wiring a_maze_ing.py (main pipeline)

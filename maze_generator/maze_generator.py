@@ -267,11 +267,12 @@ class MazeGenerator():
         self.generate()
         if not self.perfect:
             self._imperfect()
-        path_coords, _ = self.solve(self.entry, self.exit)
+        path_coords, path_directions = self.solve(self.entry, self.exit)
         return Maze(
             grid=self.grid,
             entry=self.entry,
             exit=self.exit,
             path=path_coords,
-            mask=list(self.pattern_cells)
+            mask=list(self.pattern_cells),
+            path_directions=path_directions,
         )
