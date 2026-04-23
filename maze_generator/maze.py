@@ -1,10 +1,11 @@
 from pydantic import BaseModel, Field, model_validator
-from typing import Annotated, Self
+from typing import Annotated, Self, Union
 
 
 Cell = Annotated[int, Field(ge=0, le=15)]
 PositiveInt = Annotated[int, Field(ge=0)]
 Coords = tuple[PositiveInt, PositiveInt]
+Seed = Union[int, float, str, bytes, None]
 
 
 class Maze(BaseModel):
@@ -28,7 +29,7 @@ class MazeOptions(BaseModel):
     exit: Coords
     output_file: str
     perfect: bool = Field(default=False)
-    seed: str | None = Field(default=None)
+    seed: Seed = Field(default=None)
 
     @model_validator(mode='after')
     def entry_validator(self) -> Self:

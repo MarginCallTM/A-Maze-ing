@@ -1,9 +1,9 @@
 import random
 import sys
 from collections import deque
-from .maze import MazeOptions, MazeError, Maze
+from .maze import MazeOptions, Maze
 from typing import Self
-import re
+
 
 PATTERN_42 = [
     [1, 0, 1, 0, 1, 1, 1],
@@ -49,32 +49,57 @@ class MazeGenerator():
 
         # Raise avec MazeError
 
-    # @classmethod
-    @staticmethod
-    def from_config_file(config_file: str) -> None:
+    @classmethod
+    def from_config_file(cls, config_file: str) -> Self:
 
-        keys = ["WIDTH", "HEIGHT", "ENTRY", "EXIT", "OUTPUT_FILE", "PERFECT"]
+        MANDATORY_KEYS = ['WIDTH', 'HEIGHT', 'ENTRY', 'EXIT', 'OUTPUT_FILE',
+                          'PERFECT']
+        OPTIONAL_KEYS = ['SEED']
 
-        missing_keys = keys.copy()
+        config = {}
 
-        lines = []
-        with open(config_file) as configs:
-            lines = configs.readlines()
+        with open(config_file, 'r') as file:
+            lines = file.readlines()
+            for line in lines:
+                line = line.strip()
 
-        for line in lines:
-            line = line.strip()
-            if line.startswith("#"):
-                continue
-            if key_error := re.match(r'^([A-Z_]+)?=$', line):
-                raise MazeError(f"Key {key_error.groups()[0]} "
-                                "is missing a value")
-            if match := re.match(r'^([A-Z_]+)=(.*)$', line):
-                key, value = match.groups()
-                if key in missing_keys:
-                    missing_keys.remove(key)
-                print(key, value)
-                # if (key in ("WIDTH", "HEIGHT") and
-                #     (vals := value.split(value))):
+                if not line or line.startswith('#'):
+                    continue
+
+                if '=' in line:
+                    key, value = line.split('=', 1)
+
+                    if value.lower() == 'true':
+                        value = True
+                    elif value.lower() == 'false':
+                        value = False
+                    elif ',' in value:
+                        try:
+                            value = tuple(int(v) for v in value.split(','))
+                        except ValueError:
+                            pass
+                    else:
+                        try:
+                            value = int(value)
+                        except ValueError:
+                            pass
+
+                    config[key.lower()] = value
+
+        missing = [key for key in MANDATORY_KEYS if key.lower() not in config]
+        if missing:
+            raise ValueError(f"Missing mandatory config keys: {missing}")
+
+        known_keys = set(MANDATORY_KEYS + OPTIONAL_KEYS)
+
+        for key in [key for key in config if key.upper() not in known_keys]:
+            del config[key]
+
+        print(config)
+
+        options = MazeOptions(**config)
+
+        return cls(options)
 
     def _get_unvisited_neighbors(
         self, x: int, y: int, visited: list[list[bool]]
@@ -140,7 +165,7 @@ class MazeGenerator():
                 if self.grid[Y + dy][X + dx] & 4:
                     return False
         return True
-    
+
     def _imperfect(self) -> None:
         candidates = []
         for y in range(self.height):
