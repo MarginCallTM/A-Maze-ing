@@ -62,8 +62,6 @@ class MazeGenerator():
                 file=sys.stderr
             )
 
-        # Raise avec MazeError
-
     @classmethod
     def from_config_file(cls, config_file: str) -> Self:
         """Build a generator from a ``KEY=VALUE`` configuration file.
@@ -372,6 +370,10 @@ class MazeGenerator():
         line followed by the entry coordinates, the exit coordinates
         and the N/E/S/W path string. Every line ends with ``\\n``.
         """
+
+        if output_file.endswith('.txt'):
+            raise MazeError("output file must be txt file")
+
         with open(output_file, "w") as f:
             for row in maze.grid:
                 line = "".join(f"{cell:X}" for cell in row)
