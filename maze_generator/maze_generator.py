@@ -1,7 +1,7 @@
 import random
 import sys
 from collections import deque
-from .maze import MazeOptions, Maze
+from .maze import MazeOptions, Maze, MazeError
 from typing import Self, Any
 
 
@@ -272,6 +272,11 @@ class MazeGenerator():
                 stack.append((nx, ny))
             else:
                 stack.pop()
+
+        if self.entry in self.pattern_cells:
+            raise MazeError("the 42 pattern overlap with the entrance")
+        if self.exit in self.pattern_cells:
+            raise MazeError("the 42 pattern overlap with the exit")
 
         return self.grid
 

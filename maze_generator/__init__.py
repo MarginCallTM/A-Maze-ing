@@ -1,4 +1,5 @@
-from .maze import Maze, MazeOptions, Cell, Coords
+from .maze import Maze, MazeOptions, Cell, Coords, MazeError
 from .maze_generator import MazeGenerator
 
-__all__ = ["MazeGenerator", "Maze", "MazeOptions", "Cell", "Coords"]
+__all__ = ["MazeGenerator", "Maze", "MazeOptions", "Cell", "Coords",
+           "MazeError"]
