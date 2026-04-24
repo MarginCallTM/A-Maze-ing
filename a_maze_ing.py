@@ -5,7 +5,7 @@ the subject's hex format and displays it in the terminal.
 """
 
 from maze_renderer import MazeRenderer
-from maze_generator import MazeGenerator
+from maze_generator import MazeGenerator, MazeError
 from pydantic import ValidationError
 import sys
 
@@ -25,10 +25,13 @@ def main() -> None:
 
     try:
         maze_generator = MazeGenerator.from_config_file(config_file)
+        maze = maze_generator.build()
     except ValidationError as e:
         print(e.errors()[0]["msg"], file=sys.stderr)
         sys.exit(1)
-    maze = maze_generator.build()
+    except MazeError as e:
+        print(e)
+        sys.exit(1)
     maze_generator.write_maze(maze, maze_generator.output_file)
     renderer.render_maze(maze)
 
