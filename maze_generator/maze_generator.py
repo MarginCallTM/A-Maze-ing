@@ -16,20 +16,10 @@ PATTERN_42 = [
 
 
 class MazeGenerator():
-    """Build, solve and serialize a maze from a :class:`MazeOptions`.
-
-    The generator uses an iterative depth-first search (recursive
-    backtracker) to carve a spanning tree, optionally breaks some
-    extra walls when ``perfect`` is False, then finds the shortest
-    path between entry and exit with a BFS."""
+    """Build, solve and serialize a maze from a MazeOptions."""
 
     def __init__(self, options: MazeOptions) -> None:
-        """Initialize the generator state from validated options.
-
-        Seeds the RNG, allocates a grid of fully-closed cells (value
-        15) and computes the centered "42" pattern cells when the
-        maze is large enough. Prints a warning on stderr otherwise.
-        """
+        """Initialize the generator state from validated options."""
         self.width = options.width
         self.height = options.height
         self.entry = options.entry
@@ -66,12 +56,7 @@ class MazeGenerator():
 
     @classmethod
     def from_config_file(cls, config_file: str) -> Self:
-        """Build a generator from a ``KEY=VALUE`` configuration file.
-
-        Parses the file, coerces values (``True``/``False``, tuples,
-        ints) and delegates final validation to :class:`MazeOptions`.
-        Lines starting with ``#`` and blank lines are ignored.
-        """
+        """Build a generator from a KEY=VALUE configuration file."""
         MANDATORY_KEYS = ['WIDTH', 'HEIGHT', 'ENTRY', 'EXIT', 'OUTPUT_FILE',
                           'PERFECT']
         OPTIONAL_KEYS = ['SEED']
@@ -123,10 +108,7 @@ class MazeGenerator():
     def _get_unvisited_neighbors(
         self, x: int, y: int, visited: list[list[bool]]
     ) -> list[tuple[int, int]]:
-        """Return the in-bounds, not-yet-visited neighbors of ``(x, y)``.
-        Returns:
-            List of ``(x, y)`` neighbor coordinates, in N/E/S/W order.
-        """
+        """Return the in-bounds, not-yet-visited neighbors of (x, y)."""
         neighbors = []
         directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         for dx, dy in directions:
@@ -137,11 +119,7 @@ class MazeGenerator():
         return neighbors
 
     def _remove_wall(self, x1: int, y1: int, x2: int, y2: int) -> None:
-        """Open the wall shared by two adjacent cells.
-
-        Updates both cells to keep the grid coherent (the two sides
-        of a wall must always agree).
-        """
+        """Open the wall shared by two adjacent cells."""
         if y2 < y1:  # North
             self.grid[y1][x1] &= ~1
             self.grid[y2][x2] &= ~4
@@ -156,11 +134,7 @@ class MazeGenerator():
             self.grid[y2][x2] &= ~2
 
     def _add_wall(self, x1: int, y1: int, x2: int, y2: int) -> None:
-        """Close the wall shared by two adjacent cells.
-
-        Inverse operation of :meth:`_remove_wall`, kept coherent on
-        both sides of the wall.
-        """
+        """Close the wall shared by two adjacent cells."""
         if y2 < y1:
             self.grid[y1][x1] |= 1
             self.grid[y2][x2] |= 4
@@ -177,11 +151,7 @@ class MazeGenerator():
     def _would_create_3x3_open(
             self, x1: int, y1: int, x2: int, y2: int
     ) -> bool:
-        """
-        Temporarily opens the wall, scans the few 3x3 regions that
-        could become open, then restores the wall. The subject forbids
-        any 3x3 open area in the final maze.
-        """
+        """Check whether opening a wall would create a 3x3 open area."""
         self._remove_wall(x1, y1, x2, y2)
         xmin, xmax = min(x1, x2), max(x1, x2)
         ymin, ymax = min(y1, y2), max(y1, y2)
@@ -194,14 +164,7 @@ class MazeGenerator():
         return result
 
     def _is_3x3_open(self, X: int, Y: int) -> bool:
-        """Test whether the 3x3 block with top-left ``(X, Y)`` is fully open.
-
-        A 3x3 block is open when none of its internal vertical or
-        horizontal walls are closed.
-
-        Returns:
-            True if all internal walls of the block are open.
-        """
+        """Return True if the 3x3 block at (X, Y) is fully open."""
         for dx in range(2):
             for dy in range(3):
                 if self.grid[Y + dy][X + dx] & 2:
@@ -213,12 +176,7 @@ class MazeGenerator():
         return True
 
     def _imperfect(self) -> None:
-        """Break roughly 10% of internal walls to create multiple paths.
-
-        Only walls whose removal does not create a 3x3 open area and
-        whose two cells are outside the "42" pattern are eligible.
-        Must be called after :meth:`generate`.
-        """
+        """Break roughly 10% of internal walls to create multiple paths."""
         candidates = []
         for y in range(self.height):
             for x in range(self.width):
@@ -243,15 +201,7 @@ class MazeGenerator():
                 removed += 1
 
     def generate(self) -> list[list[int]]:
-        """Carve the maze with an iterative DFS (recursive backtracker).
-
-        Starts at ``(0, 0)``, treats "42" pattern cells as pre-visited
-        so they stay fully closed, and carves a spanning tree over the
-        remaining cells. Mutates ``self.grid`` in place.
-
-        Returns:
-            The resulting grid (same reference as ``self.grid``).
-        """
+        """Carve the maze with an iterative DFS (recursive backtracker)."""
         visited = [[False for i in range(self.width)]
                    for i in range(self.height)]
         for (x, y) in self.pattern_cells:
@@ -277,14 +227,7 @@ class MazeGenerator():
 
     def solve(self, entry: tuple[int, int], exit_pos: tuple[int,
               int]) -> tuple[list[tuple[int, int]], str]:
-        """Compute the shortest path between two cells using BFS.
-
-        Returns:
-            A tuple ``(path, directions)`` where ``path`` is the
-            ordered list of cells from entry to exit and
-            ``directions`` is the corresponding ``N``/``E``/``S``/``W``
-            string.
-        """
+        """Return the shortest path and its N/E/S/W string via BFS."""
         visited = [[False for i in range(self.width)]
                    for i in range(self.height)]
         came_from = {}
@@ -333,17 +276,7 @@ class MazeGenerator():
         return path_coords, path_directions
 
     def build(self) -> Maze:
-        """Run the full pipeline and return a :class:`Maze` instance.
-
-        Generates the maze, optionally breaks walls when
-        ``perfect=False``, solves it, and packages everything into a
-        :class:`Maze`. Not idempotent: a second call on the same
-        instance will solve the already-generated grid without
-        re-carving it.
-
-        Returns:
-            A fully populated :class:`Maze`.
-        """
+        """Run the full pipeline and return a Maze instance."""
         self.grid = [[15] * self.width for i in range(self.height)]
         self.generate()
         if not self.perfect:
@@ -360,13 +293,7 @@ class MazeGenerator():
 
     @staticmethod
     def write_maze(maze: Maze, output_file: str) -> None:
-        """Serialize a :class:`Maze` to the subject's output format.
-
-        Writes one hex digit per cell (bit 0 N, bit 1 E, bit 2 S,
-        bit 3 W; 1 = wall closed), one row per line, then an empty
-        line followed by the entry coordinates, the exit coordinates
-        and the N/E/S/W path string. Every line ends with ``\\n``.
-        """
+        """Serialize a Maze to the subject's output format."""
         with open(output_file, "w") as f:
             for row in maze.grid:
                 line = "".join(f"{cell:X}" for cell in row)
