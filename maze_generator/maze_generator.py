@@ -2,7 +2,7 @@ import random
 import sys
 from collections import deque
 from .maze import MazeOptions, Maze
-from typing import Self
+from typing import Self, Any
 
 
 PATTERN_42 = [
@@ -87,6 +87,7 @@ class MazeGenerator():
                     continue
 
                 if '=' in line:
+                    value: Any
                     key, value = line.split('=', 1)
 
                     if value.lower() == 'true':
@@ -114,8 +115,6 @@ class MazeGenerator():
 
         for key in [key for key in config if key.upper() not in known_keys]:
             del config[key]
-
-        print(config)
 
         options = MazeOptions(**config)
 
@@ -345,6 +344,7 @@ class MazeGenerator():
         Returns:
             A fully populated :class:`Maze`.
         """
+        self.grid = [[15] * self.width for i in range(self.height)]
         self.generate()
         if not self.perfect:
             self._imperfect()

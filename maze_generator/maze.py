@@ -55,6 +55,7 @@ class MazeOptions(BaseModel):
     output_file: str
     perfect: bool = Field(default=False)
     seed: Seed = Field(default=None)
+    has_forty_two: bool = True
 
     @model_validator(mode='after')
     def entry_validator(self) -> Self:
