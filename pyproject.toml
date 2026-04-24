@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a-maze-ing"
+version = "1.0.0"
+description = "A maze generator, solver and ASCII renderer — 42 project."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Adrien Combier", email = "acombier@student.42.fr" },
+    { name = "Quentin Descombes", email = "qdescomb@student.42.fr" },
+]
+license = { text = "MIT" }
+keywords = ["maze", "generator", "solver", "ascii", "42"]
+
+dependencies = [
+    "pydantic~=2.0",
+	"flake8~=7.3.0",
+	"iniconfig~=2.3.0",
+	"librt~=0.9.0",
+	"mccabe~=0.7.0",
+	"mypy~=1.20.1",
+	"mypy_extensions~=1.1.0",
+	"packaging~=26.1",
+	"pathspec~=1.0.4",
+	"pluggy~=1.6.0",
+	"pycodestyle~=2.14.0",
+	"pyflakes~=3.4.0",
+	"Pygments~=2.20.0",
+	"pytest~=9.0.3",
+	"typing_extensions~=4.15.0"
+
+]
+
+[project.optional-dependencies]
+dev = [
+    "flake8~=7.3.0",
+    "mypy~=1.20.1",
+    "pytest~=9.0.3",
+]
+
+[project.scripts]
+a-maze-ing = "a_maze_ing:main"
+
+
+[tool.setuptools.packages.find]
+include = ["maze_generator*"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
