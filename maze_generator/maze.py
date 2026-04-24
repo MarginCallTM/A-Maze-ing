@@ -27,14 +27,21 @@ class MazeError(Exception):
 class MazeOptions(BaseModel):
     """Validated configuration for a maze generation."""
 
-    width: int = Field(ge=2)
-    height: int = Field(ge=2)
+    width: int = Field(ge=2, le=200)
+    height: int = Field(ge=2, le=200)
     entry: Coords
     exit: Coords
     output_file: str
     perfect: bool = Field(default=False)
     seed: Seed = Field(default=None)
     has_forty_two: bool = True
+
+    @model_validator(mode='after')
+    def end_point_validation(self) -> Self:
+        """Ensure the entry and exit cells don't overlap."""
+        if self.entry == self.exit:
+            raise ValueError("Entry and exit cells overlap")
+        return self
 
     @model_validator(mode='after')
     def entry_validator(self) -> Self:
@@ -55,4 +62,11 @@ class MazeOptions(BaseModel):
         """Flag mazes too small to host the centered "42" pattern."""
         if self.width < 9 or self.height < 7:
             self.has_forty_two = False
+        return self
+
+    @model_validator(mode='after')
+    def out_file_vlidator(self) -> Self:
+        """Check if the output file is a txt file"""
+        if not self.output_file.endswith(".txt"):
+            raise ValueError("Output file must be a txt file")
         return self

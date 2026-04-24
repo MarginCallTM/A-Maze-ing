@@ -45,9 +45,6 @@ make run
 
 # Run in debug mode (pdb)
 make debug
-
-# Run the test suite
-python3 -m pytest test_generator.py -v
 ```
 
 ### Quality checks
@@ -79,13 +76,7 @@ tasks, always with a human review-and-rewrite loop:
 - Reviewing code for norm compliance (flake8, mypy) and suggesting
   refactors (e.g., factoring out dead code in the `42` pattern
   implementation).
-- Drafting test cases (boundary tests, connectivity, pattern invariants).
-- Explaining Python-specific idioms (set comprehensions, type hints,
-  Pydantic validators) to support live-evaluation readiness.
 
-All AI-generated code was reviewed, understood, and rewritten by hand
-before being committed — following the learner rules described in the
-subject.
 
 ## Configuration file format
 
@@ -113,9 +104,10 @@ A default `config.txt` is provided at the root of the repository.
 
 ### Constraints
 
-- `WIDTH` and `HEIGHT` must be at least `3`.
-- `ENTRY` and `EXIT` must be distinct, within maze bounds, and lie on
-  valid cells (not inside the `42` pattern).
+- `WIDTH` and `HEIGHT` must be between `2` and `200`.
+- `ENTRY` and `EXIT` must be distinct, within maze bounds, and must not
+  land on a cell of the `42` pattern (checked at generation time).
+- `OUTPUT_FILE` must end with `.txt`.
 - If the maze size is too small to fit the `42` pattern (currently
   `WIDTH >= 9` and `HEIGHT >= 7`), the pattern is omitted and a warning
   is printed on `stderr`.
@@ -154,6 +146,15 @@ graph, which is exactly what we have (each cell connects to its open
 neighbors with uniform cost). The path is encoded as a string of `N`,
 `E`, `S`, `W` letters, as required by the subject.
 
+### Imperfect mazes (`PERFECT=False`)
+
+When `PERFECT=False`, the generator post-processes the spanning tree by
+breaking roughly `10%` of the remaining internal walls. Every candidate
+wall is checked against the "no `3x3` open area" invariant before being
+opened — a temporary opening that would create a fully open `3x3` block
+is rejected. `42` pattern cells are excluded from the candidate set so
+the logo stays intact.
+
 ### The `42` pattern
 
 The pattern is a `7x5` binary matrix (`PATTERN_42`) where `1` marks a
@@ -165,16 +166,20 @@ distinctively.
 
 ## Reusable module
 
-The maze generation logic is encapsulated in the `MazeGenerator` class
-inside `maze_generator.py`. It is designed to be built and distributed
-as a standalone, pip-installable package named `mazegen-*` (`.whl` or
-`.tar.gz`), placed at the root of this Git repository.
+The maze generation logic is encapsulated in the `MazeGenerator` class,
+inside the `maze_generator/` package (`maze_generator/maze_generator.py`
+for the class, `maze_generator/maze.py` for the Pydantic models). The
+package re-exports its public API via `maze_generator/__init__.py`:
+`MazeGenerator`, `Maze`, `MazeOptions`, `Cell`, `Coords`, `MazeError`.
+
+It is designed to be built and distributed as a standalone,
+pip-installable package named `mazegen-*` (`.whl` or `.tar.gz`), placed
+at the root of this Git repository.
 
 ### Minimal usage example
 
 ```python
-from maze_generator import MazeGenerator
-from Maze import MazeOptions
+from maze_generator import MazeGenerator, MazeOptions
 
 options = MazeOptions(
     width=20,
@@ -183,17 +188,23 @@ options = MazeOptions(
     exit=(19, 14),
     output_file="maze.txt",
     perfect=True,
-    seed="42",
+    seed=42,
 )
 
 gen = MazeGenerator(options)
-gen.generate()                              # builds the maze
-path, directions = gen.solve((0, 0), (19, 14))
+maze = gen.build()                          # generate + solve + (imperfect)
+MazeGenerator.write_maze(maze, "maze.txt")  # serialize to the subject format
 
-# Public attributes:
-gen.grid            # list[list[int]] — walls encoded in hex
-gen.pattern_cells   # set[tuple[int, int]] — '42' pattern cells
-gen.has_forty_two   # bool — whether the pattern was applied
+# The returned Maze (Pydantic model) exposes:
+maze.grid              # list[list[int]] — walls encoded as N/E/S/W bits
+maze.entry, maze.exit  # tuple[int, int]
+maze.path              # list[tuple[int, int]] — shortest path cells
+maze.path_directions   # str — "NESW..." directions from entry to exit
+maze.mask              # list[tuple[int, int]] — '42' pattern cells
+
+# Alternative entry point: build directly from a KEY=VALUE config file.
+gen = MazeGenerator.from_config_file("config.txt")
+maze = gen.build()
 ```
 
 ### Package build
@@ -206,10 +217,10 @@ gen.has_forty_two   # bool — whether the pattern was applied
 ### Roles
 
 - **Adrien Combier (`acombier`)** — maze generation algorithm (DFS),
-  solver (BFS), `42` pattern integration, test suite for the generator.
-- **Quentin Descombes (`qdescomb`)** — configuration file parsing,
-  output file writer (hexadecimal format), visual representation
-  (terminal ASCII).
+  solver (BFS), `42` pattern integration, imperfect-mode wall breaking.
+- **Quentin Descombes (`qdescomb`)** — configuration file parsing
+  (`from_config_file`), output file writer (hexadecimal format), visual
+  representation (terminal ASCII, interactive menu).
 
 ### Planning and how it evolved
 
@@ -232,10 +243,12 @@ gen.has_forty_two   # bool — whether the pattern was applied
 ### What worked well
 
 - Splitting the work around a clear class interface (`MazeGenerator`
-  exposing `grid`, `pattern_cells`, `solve()`) allowed the two team
-  members to progress in parallel without merge conflicts.
-- Writing the test suite alongside the generator caught the `42`
-  pattern mis-implementation early.
+  exposing `build()`, `solve()`, `grid`, `pattern_cells`) allowed the
+  two team members to progress in parallel without merge conflicts.
+- Pydantic validators on `MazeOptions` let us push every configuration
+  check (bounds, entry/exit overlap, `.txt` extension, `42`-pattern
+  fit) into a single declarative place instead of scattered `if`s in
+  the parsing code.
 - Static analysis (flake8 + mypy) enforced from Phase 0 avoided
   accumulating debt.
 
@@ -247,15 +260,20 @@ gen.has_forty_two   # bool — whether the pattern was applied
 - The `42` pattern was rewritten once due to an over-engineered first
   draft — a whiteboard of the invariants before coding would have
   avoided the detour.
+- No automated test suite yet: regressions are currently caught by
+  manual runs and `lint-strict`. Adding `pytest` coverage on
+  `MazeGenerator` (connectivity, `3x3` invariant, `42` pattern) is the
+  most obvious next improvement.
 
 ### Tools used
 
 - **Language.** Python 3.10+
-- **Validation.** Pydantic (configuration and data models)
-- **Testing.** pytest (17 tests covering dimensions, borders, wall
-  coherence, connectivity, solver, `42` pattern)
-- **Linting.** flake8, mypy (mandatory flags + `--strict` available)
-- **Environment.** venv
+- **Validation.** Pydantic (configuration and data models —
+  `MazeOptions`, `Maze`)
+- **Linting.** flake8, mypy (mandatory flags via `make lint`,
+  `--strict` available via `make lint-strict`)
+- **Environment.** venv, dev dependencies pinned in
+  `requirements-dev.txt`
 - **AI.** Claude (collaborative pair-programming, always with human
   review — see *AI usage* section above)
 - **Version control.** Git / GitHub

@@ -46,5 +46,7 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except (EOFError, KeyboardInterrupt):
         sys.exit(0)
+    except Exception:
+        sys.exit(1)
