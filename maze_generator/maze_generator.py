@@ -85,6 +85,7 @@ class MazeGenerator():
                     continue
 
                 if '=' in line:
+                    invalid = False
                     value: Any
                     key, value = line.split('=', 1)
 
@@ -97,17 +98,20 @@ class MazeGenerator():
                             value = tuple(int(v) for v in value.split(','))
                         except ValueError:
                             pass
+                        if len(value) != 2:
+                            invalid = True
                     else:
                         try:
                             value = int(value)
                         except ValueError:
                             pass
-
-                    config[key.lower()] = value
+                            
+                    if not invalid:
+                        config[key.lower()] = value
 
         missing = [key for key in MANDATORY_KEYS if key.lower() not in config]
         if missing:
-            raise ValueError(f"Missing mandatory config keys: {missing}")
+            raise MazeError(f"Missing mandatory config keys: {missing}")
 
         known_keys = set(MANDATORY_KEYS + OPTIONAL_KEYS)
 

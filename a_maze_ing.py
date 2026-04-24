@@ -26,13 +26,13 @@ def main() -> None:
     try:
         maze_generator = MazeGenerator.from_config_file(config_file)
         maze = maze_generator.build()
+        maze_generator.write_maze(maze, maze_generator.output_file)
     except ValidationError as e:
         print(e.errors()[0]["msg"], file=sys.stderr)
         sys.exit(1)
     except MazeError as e:
         print(e)
         sys.exit(1)
-    maze_generator.write_maze(maze, maze_generator.output_file)
     renderer.render_maze(maze)
 
     while True:
@@ -52,4 +52,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        sys.exit(0)
