@@ -371,7 +371,7 @@ class MazeGenerator():
         and the N/E/S/W path string. Every line ends with ``\\n``.
         """
 
-        if output_file.endswith('.txt'):
+        if not output_file.endswith('.txt'):
             raise MazeError("output file must be txt file")
 
         with open(output_file, "w") as f:
