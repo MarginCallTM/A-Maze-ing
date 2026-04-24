@@ -61,38 +61,44 @@ class MazeGenerator():
 
         config = {}
 
-        with open(config_file, 'r') as file:
-            lines = file.readlines()
-            for line in lines:
-                line = line.strip()
+        try:
+            with open(config_file, 'r') as file:
+                lines = file.readlines()
+                for line in lines:
+                    line = line.strip()
 
-                if not line or line.startswith('#'):
-                    continue
+                    if not line or line.startswith('#'):
+                        continue
 
-                if '=' in line:
-                    invalid = False
-                    value: Any
-                    key, value = line.split('=', 1)
+                    if '=' in line:
+                        invalid = False
+                        value: Any
+                        key, value = line.split('=', 1)
 
-                    if value.lower() == 'true':
-                        value = True
-                    elif value.lower() == 'false':
-                        value = False
-                    elif ',' in value:
-                        try:
-                            value = tuple(int(v) for v in value.split(','))
-                        except ValueError:
-                            pass
-                        if len(value) != 2:
-                            invalid = True
-                    else:
-                        try:
-                            value = int(value)
-                        except ValueError:
-                            pass
+                        if key.lower() in config:
+                            continue
 
-                    if not invalid:
-                        config[key.lower()] = value
+                        if value.lower() == 'true':
+                            value = True
+                        elif value.lower() == 'false':
+                            value = False
+                        elif ',' in value:
+                            try:
+                                value = tuple(int(v) for v in value.split(','))
+                            except ValueError:
+                                pass
+                            if len(value) != 2:
+                                invalid = True
+                        else:
+                            try:
+                                value = int(value)
+                            except ValueError:
+                                pass
+
+                        if not invalid:
+                            config[key.lower()] = value
+        except OSError:
+            raise MazeError("Invalid config file")
 
         missing = [key for key in MANDATORY_KEYS if key.lower() not in config]
         if missing:

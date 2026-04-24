@@ -2,6 +2,7 @@
 
 from maze_generator import Maze, Cell
 from operator import sub
+import os
 
 Pair = tuple[str, str]
 Grid = tuple[tuple[Pair, Pair], tuple[Pair, Pair]]
@@ -47,6 +48,7 @@ class MazeRenderer:
         self.__add_entry(maze_render)
         self.__add_exit(maze_render)
 
+        os.system('clear')
         display = "\n".join("".join(row) for row in maze_render)
         print(f"{display}\033[0m")
 
