@@ -8,20 +8,7 @@ Grid = tuple[tuple[Pair, Pair], tuple[Pair, Pair]]
 
 
 class MazeRenderer:
-    """Render a :class:`Maze` as box-drawing characters in the terminal.
-
-    The renderer turns each cell into a 3x1 character group and
-    stitches the walls together using a lookup tree of 4-way
-    junctions. Entry, exit, shortest path and "42" mask cells each
-    have their own glyph, and the wall colour can be rotated through
-    :attr:`palette`.
-
-    Attributes:
-        maze: The maze to display.
-        palette: ANSI colour codes cycled by interaction ``3``.
-        color_index: Index of the currently active colour in ``palette``.
-        show_path: Whether the shortest path overlay is drawn.
-    """
+    """Render a Maze as box-drawing characters in the terminal."""
 
     def __init__(self) -> None:
         """Prepare the glyph tree, palette and default display flags."""
@@ -46,11 +33,7 @@ class MazeRenderer:
         self.color_mask: int = 5
 
     def render_maze(self, maze: Maze) -> None:
-        """Draw the maze on stdout with the active colour.
-
-        Builds the full character grid (borders, walls, junctions,
-        mask, path, entry, exit) and prints it row by row.
-        """
+        """Draw the maze on stdout with the active colour."""
         self.maze: Maze = maze
         self.y_len: int = len(maze.grid)
         self.x_len: int = len(maze.grid[0])
@@ -138,22 +121,15 @@ class MazeRenderer:
             prev = pos
 
     def __add_mask(self, grid: list[list[str]]) -> None:
-
+        """Fill every cell of the "42" pattern with the mask glyph."""
         mask_color = self.palette[self.color_mask]
         char = f"{mask_color}{self.mask_char}\033[0m"
-        """Fill every cell of the "42" pattern with the mask glyph."""
         for pos in self.maze.mask:
             grid[pos[1] * 2 + 1][pos[0] * 2 + 1] = char * 3
 
     def __gen_grid(self) -> list[list[str]]:
-
+        """Allocate the display grid and place external borders/junctions."""
         wall_color = self.palette[self.color_walls]
-        """Allocate the display grid and place external borders/junctions.
-
-        Returns:
-            A 2D list of strings sized ``(2H+1) x (2W+1)``, already
-            filled with corner, border and inner junction glyphs.
-        """
         y_len = self.y_len * 2 + 1
         x_len = self.x_len * 2 + 1
 
@@ -214,10 +190,7 @@ class MazeRenderer:
                     grid[(y + 1) * 2][x * 2 + 1] = char * 3
 
     def __apply_crossing(self, grid: list[list[str]]) -> None:
-        """Pick the right junction glyph for each wall intersection.
-
-        Uses the 4-bit N/E/S/W neighbour mask to index :attr:`tree`.
-        """
+        """Pick the right junction glyph for each wall intersection."""
         y_len = self.y_len * 2 + 1
         x_len = self.x_len * 2 + 1
 

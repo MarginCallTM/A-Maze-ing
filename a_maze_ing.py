@@ -1,8 +1,4 @@
-"""Entry point of the A-Maze-ing CLI.
-
-Reads a configuration file, generates a maze, writes it to disk in
-the subject's hex format and displays it in the terminal.
-"""
+"""Entry point of the A-Maze-ing CLI."""
 
 from maze_renderer import MazeRenderer
 from maze_generator import MazeGenerator, MazeError
@@ -11,11 +7,7 @@ import sys
 
 
 def main() -> None:
-    """Run the full pipeline: parse config, build, write, render.
-
-    Expects a single CLI argument pointing to the configuration file.
-    Exits with status 1 on usage errors.
-    """
+    """Run the full pipeline: parse config, build, write, render."""
     if not len(sys.argv) == 2:
         print("Usage: python3 a_maze_ing.py <config_file>")
         sys.exit(1)
