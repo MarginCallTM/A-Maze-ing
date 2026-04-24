@@ -1,5 +1,6 @@
 from maze_renderer import MazeRenderer
 from maze_generator import MazeGenerator
+from pydantic import ValidationError
 import sys
 
 
@@ -8,25 +9,30 @@ def main() -> None:
         print("Usage: python3 a_maze_ing.py <config_file>")
         sys.exit(1)
     config_file = sys.argv[1]
-    maze_generator = MazeGenerator.from_config_file(config_file)
+
+    renderer = MazeRenderer()
+
+    try:
+        maze_generator = MazeGenerator.from_config_file(config_file)
+    except ValidationError as e:
+        print(e.errors()[0]["msg"], file=sys.stderr)
+        sys.exit(1)
     maze = maze_generator.build()
     maze_generator.write_maze(maze, maze_generator.output_file)
-    renderer = MazeRenderer(maze)
-    renderer.render_maze()
+    renderer.render_maze(maze)
 
     while True:
         choice = renderer.render_menu()
         if choice == 1:
             maze = maze_generator.build()
             maze_generator.write_maze(maze, maze_generator.output_file)
-            renderer = MazeRenderer(maze)
-            renderer.render_maze()
+            renderer.render_maze(maze)
         elif choice == 2:
             renderer.cycle_path_display()
-            renderer.render_maze()
+            renderer.render_maze(maze)
         elif choice == 3:
             renderer.cycle_colors()
-            renderer.render_maze()
+            renderer.render_maze(maze)
         elif choice == 4:
             sys.exit(0)
 

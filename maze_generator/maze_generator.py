@@ -2,7 +2,7 @@ import random
 import sys
 from collections import deque
 from .maze import MazeOptions, Maze
-from typing import Self
+from typing import Self, Any
 
 
 PATTERN_42 = [
@@ -68,6 +68,7 @@ class MazeGenerator():
                     continue
 
                 if '=' in line:
+                    value: Any
                     key, value = line.split('=', 1)
 
                     if value.lower() == 'true':
@@ -263,6 +264,7 @@ class MazeGenerator():
         return path_coords, path_directions
 
     def build(self) -> Maze:
+        self.grid = [[15] * self.width for i in range(self.height)]
         self.generate()
         if not self.perfect:
             self._imperfect()

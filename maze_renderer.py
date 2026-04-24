@@ -1,45 +1,49 @@
 from maze_generator import Maze, Cell
 from operator import sub
 
+Pair = tuple[str, str]
+Grid = tuple[tuple[Pair, Pair], tuple[Pair, Pair]]
+
 
 class MazeRenderer:
 
-    def __init__(self, maze: Maze):
-        self.maze: Maze = maze
-        self.tree: tuple[tuple[tuple[tuple[str]]]] = (
+    def __init__(self) -> None:
+        self.tree: tuple[Grid, Grid] = (
             (((' ', '•'), ('•', '╗')), (('•', '═'), ('╔', '╦'))),
             ((('•', '╝'), ('║', '╣')), (('╚', '╩'), ('╠', '╬')))
         )
+        self.show_path: bool = False
         self.entry_char: str = '▓'
         self.exit_char: str = '░'
         self.path_char: str = '▒'
         self.mask_char: str = '█'
-        self.y_len: int = len(maze.grid)
-        self.x_len: int = len(maze.grid[0])
         self.palette: list[str] = [
             "\033[34m", "\033[32m", "\033[33m",
             "\033[31m", "\033[35m", "\033[36m",
             "\033[37m"
         ]
-        self.show_path: bool = False
         self.color_path: int = 1
         self.color_walls: int = 2
         self.color_entry: int = 3
         self.color_exit: int = 4
         self.color_mask: int = 5
 
-    def render_maze(self) -> None:
+    def render_maze(self, maze: Maze) -> None:
 
-        maze = self.__gen_grid()
-        self.__apply_walls(maze)
-        self.__apply_crossing(maze)
-        self.__add_mask(maze)
+        self.maze: Maze = maze
+        self.y_len: int = len(maze.grid)
+        self.x_len: int = len(maze.grid[0])
+
+        maze_render = self.__gen_grid()
+        self.__apply_walls(maze_render)
+        self.__apply_crossing(maze_render)
+        self.__add_mask(maze_render)
         if self.show_path:
-            self.__add_path(maze)
-        self.__add_entry(maze)
-        self.__add_exit(maze)
+            self.__add_path(maze_render)
+        self.__add_entry(maze_render)
+        self.__add_exit(maze_render)
 
-        display = "\n".join("".join(row) for row in maze)
+        display = "\n".join("".join(row) for row in maze_render)
         print(f"{display}\033[0m")
 
     def cycle_path_display(self) -> None:
@@ -77,10 +81,11 @@ class MazeRenderer:
                     raise ValueError("")
             except Exception:
                 error = "\033[1;31mERROR UNKNOWN INPUT TRY AGAIN\033[0m"
-                print("\033[2A\033[2K", end="")
+                print("\033[1A\033[2K\033[1A\033[2K", end="")
             else:
                 success = True
                 return nb
+        return 0
 
     def __add_entry(self, grid: list[list[str]]) -> None:
 
