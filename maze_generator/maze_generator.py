@@ -105,7 +105,7 @@ class MazeGenerator():
                             value = int(value)
                         except ValueError:
                             pass
-                            
+
                     if not invalid:
                         config[key.lower()] = value
 
